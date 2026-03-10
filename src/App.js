@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import GlobalStyles from './lib/GlobalStyles';
-import { useAuth } from './hooks/useAuth';
+import useAuth from './hooks/useAuth';
 
 // Public
 import LandingPage from './pages/LandingPage';
