@@ -1,0 +1,26 @@
+{
+  "translation": {
+    "app": {
+      "name": "StickerSwap"
+    },
+    "nav": {
+      "home": "Koti",
+      "album": "Albumi",
+      "swap": "Vaihda",
+      "profile": "Profiili"
+    },
+    "region": {
+      "localOnly": "Paikalliset osumat",
+      "worldwide": "Maailmanlaajuinen",
+      "searchLocal": "Vain omassa maassani",
+      "searchGlobal": "Hae globaalisti",
+      "localFirst": "Paikalliset ensin"
+    },
+    "common": {
+      "save": "Tallenna",
+      "cancel": "Peruuta",
+      "loading": "Ladataan…",
+      "search": "Hae"
+    }
+  }
+}

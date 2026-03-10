@@ -1,0 +1,122 @@
+{
+  "translation": {
+    "app": {
+      "name": "StickerSwap",
+      "tagline": "Inteligentna giełda naklejek Panini"
+    },
+    "nav": {
+      "home": "Główna",
+      "album": "Album",
+      "swap": "Wymień",
+      "profile": "Profil"
+    },
+    "auth": {
+      "login": "Zaloguj się",
+      "logout": "Wyloguj się",
+      "register": "Zarejestruj się",
+      "loginWithGoogle": "Zaloguj przez Google",
+      "welcomeBack": "Witaj ponownie!",
+      "username": "Nazwa użytkownika",
+      "email": "E-mail",
+      "password": "Hasło",
+      "confirmPassword": "Potwierdź hasło",
+      "forgotPassword": "Zapomniałeś hasła?",
+      "alreadyHaveAccount": "Masz już konto?",
+      "noAccountYet": "Nie masz jeszcze konta?",
+      "twoFactor": "Uwierzytelnianie dwuskładnikowe",
+      "enterCode": "Wprowadź kod",
+      "enable2FA": "Włącz 2FA",
+      "errors": {
+        "invalidCredentials": "Nieprawidłowy e-mail lub hasło.",
+        "emailTaken": "Ten e-mail jest już zajęty.",
+        "usernameTaken": "Ta nazwa użytkownika jest już zajęta.",
+        "weakPassword": "Hasło musi mieć co najmniej 8 znaków.",
+        "generic": "Wystąpił błąd. Spróbuj ponownie."
+      }
+    },
+    "collection": {
+      "title": "Moja kolekcja",
+      "progress": "{{count}} z {{total}} naklejek",
+      "have": "Mam",
+      "double": "Podwójny",
+      "need": "Potrzebuję",
+      "locked": "W wymianie",
+      "addSticker": "Dodaj naklejkę",
+      "emptyState": "Brak naklejek w tym albumie"
+    },
+    "swap": {
+      "title": "Rynek",
+      "newSwap": "Nowa wymiana",
+      "matches": "Dopasowania",
+      "matchCount": "{{count}} dopasowań",
+      "matchScore": "{{score}}% dopasowania",
+      "requestSwap": "Poproś o wymianę",
+      "confirmSwap": "Potwierdź wymianę",
+      "cancelSwap": "Anuluj wymianę",
+      "markShipped": "Oznacz jako wysłane",
+      "confirmReceived": "Potwierdź odbiór",
+      "iGive": "Daję",
+      "iReceive": "Otrzymuję",
+      "tokenLock": "Depozyt: {{amount}} tokenów",
+      "trackingRequired": "Numer śledzenia wymagany",
+      "enterTracking": "Wprowadź numer śledzenia",
+      "status": {
+        "pending": "Oczekujące",
+        "locked": "Potwierdzone",
+        "shipped_a": "A wysłał",
+        "shipped_b": "B wysłał",
+        "both_shipped": "Oboje wysłali",
+        "completed": "Ukończone",
+        "disputed": "W sporze",
+        "cancelled": "Anulowane",
+        "expired": "Wygasłe"
+      }
+    },
+    "region": {
+      "localOnly": "Lokalne dopasowania",
+      "worldwide": "Cały świat",
+      "searchLocal": "Tylko w moim kraju",
+      "searchGlobal": "Szukaj globalnie",
+      "localFirst": "Najpierw lokalne"
+    },
+    "tokens": {
+      "title": "Tokeny",
+      "balance": "{{count}} tokenów",
+      "buy": "Kup tokeny",
+      "packages": {
+        "small": "50 tokenów — 0,99€",
+        "medium": "150 tokenów — 2,49€",
+        "large": "500 tokenów — 6,99€"
+      }
+    },
+    "profile": {
+      "title": "Profil",
+      "reputation": "Reputacja",
+      "swaps": "{{count}} wymian",
+      "member": "Członek od {{date}}",
+      "editProfile": "Edytuj profil",
+      "plan": {
+        "free": "Darmowy",
+        "pro": "Pro",
+        "dealer": "Handlarz"
+      },
+      "upgradeToPro": "Przejdź na Pro"
+    },
+    "common": {
+      "save": "Zapisz",
+      "cancel": "Anuluj",
+      "confirm": "Potwierdź",
+      "close": "Zamknij",
+      "loading": "Ładowanie…",
+      "error": "Błąd",
+      "success": "Sukces",
+      "retry": "Spróbuj ponownie",
+      "back": "Wstecz",
+      "next": "Dalej",
+      "done": "Gotowe",
+      "yes": "Tak",
+      "no": "Nie",
+      "search": "Szukaj"
+    }
+  }
+}

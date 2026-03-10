@@ -1,0 +1,122 @@
+{
+  "translation": {
+    "app": {
+      "name": "StickerSwap",
+      "tagline": "A bolsa de troca de cromos inteligente"
+    },
+    "nav": {
+      "home": "Início",
+      "album": "Álbum",
+      "swap": "Trocar",
+      "profile": "Perfil"
+    },
+    "auth": {
+      "login": "Entrar",
+      "logout": "Sair",
+      "register": "Registrar",
+      "loginWithGoogle": "Entrar com Google",
+      "welcomeBack": "Bem-vindo de volta!",
+      "username": "Usuário",
+      "email": "E-mail",
+      "password": "Senha",
+      "confirmPassword": "Confirmar senha",
+      "forgotPassword": "Esqueceu a senha?",
+      "alreadyHaveAccount": "Já tem conta?",
+      "noAccountYet": "Ainda não tem conta?",
+      "twoFactor": "Autenticação de dois fatores",
+      "enterCode": "Inserir código",
+      "enable2FA": "Ativar 2FA",
+      "errors": {
+        "invalidCredentials": "E-mail ou senha incorretos.",
+        "emailTaken": "Este e-mail já está em uso.",
+        "usernameTaken": "Este nome de usuário já está em uso.",
+        "weakPassword": "A senha deve ter pelo menos 8 caracteres.",
+        "generic": "Ocorreu um erro. Tente novamente."
+      }
+    },
+    "collection": {
+      "title": "Minha coleção",
+      "progress": "{{count}} de {{total}} cromos",
+      "have": "Tenho",
+      "double": "Duplo",
+      "need": "Preciso",
+      "locked": "Em troca",
+      "addSticker": "Adicionar cromo",
+      "emptyState": "Ainda não há cromos neste álbum"
+    },
+    "swap": {
+      "title": "Mercado",
+      "newSwap": "Nova troca",
+      "matches": "Correspondências",
+      "matchCount": "{{count}} correspondências",
+      "matchScore": "{{score}}% compatível",
+      "requestSwap": "Solicitar troca",
+      "confirmSwap": "Confirmar troca",
+      "cancelSwap": "Cancelar troca",
+      "markShipped": "Marcar como enviado",
+      "confirmReceived": "Confirmar recebimento",
+      "iGive": "Eu dou",
+      "iReceive": "Eu recebo",
+      "tokenLock": "Depósito: {{amount}} tokens",
+      "trackingRequired": "Número de rastreamento obrigatório",
+      "enterTracking": "Inserir número de rastreamento",
+      "status": {
+        "pending": "Pendente",
+        "locked": "Confirmado",
+        "shipped_a": "A enviado",
+        "shipped_b": "B enviado",
+        "both_shipped": "Ambos enviados",
+        "completed": "Concluído",
+        "disputed": "Em disputa",
+        "cancelled": "Cancelado",
+        "expired": "Expirado"
+      }
+    },
+    "region": {
+      "localOnly": "Correspondências locais",
+      "worldwide": "Mundial",
+      "searchLocal": "Apenas no meu país",
+      "searchGlobal": "Buscar mundialmente",
+      "localFirst": "Locais primeiro"
+    },
+    "tokens": {
+      "title": "Tokens",
+      "balance": "{{count}} tokens",
+      "buy": "Comprar tokens",
+      "packages": {
+        "small": "50 tokens — 0,99€",
+        "medium": "150 tokens — 2,49€",
+        "large": "500 tokens — 6,99€"
+      }
+    },
+    "profile": {
+      "title": "Perfil",
+      "reputation": "Reputação",
+      "swaps": "{{count}} trocas",
+      "member": "Membro desde {{date}}",
+      "editProfile": "Editar perfil",
+      "plan": {
+        "free": "Grátis",
+        "pro": "Pro",
+        "dealer": "Revendedor"
+      },
+      "upgradeToPro": "Atualizar para Pro"
+    },
+    "common": {
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar",
+      "close": "Fechar",
+      "loading": "Carregando…",
+      "error": "Erro",
+      "success": "Sucesso",
+      "retry": "Tentar novamente",
+      "back": "Voltar",
+      "next": "Próximo",
+      "done": "Feito",
+      "yes": "Sim",
+      "no": "Não",
+      "search": "Buscar"
+    }
+  }
+}

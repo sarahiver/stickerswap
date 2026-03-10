@@ -1,0 +1,122 @@
+{
+  "translation": {
+    "app": {
+      "name": "StickerSwap",
+      "tagline": "Il mercato intelligente per scambi Panini"
+    },
+    "nav": {
+      "home": "Home",
+      "album": "Album",
+      "swap": "Scambia",
+      "profile": "Profilo"
+    },
+    "auth": {
+      "login": "Accedi",
+      "logout": "Esci",
+      "register": "Registrati",
+      "loginWithGoogle": "Accedi con Google",
+      "welcomeBack": "Bentornato!",
+      "username": "Nome utente",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Conferma password",
+      "forgotPassword": "Password dimenticata?",
+      "alreadyHaveAccount": "Hai già un account?",
+      "noAccountYet": "Non hai ancora un account?",
+      "twoFactor": "Autenticazione a due fattori",
+      "enterCode": "Inserisci codice",
+      "enable2FA": "Attiva 2FA",
+      "errors": {
+        "invalidCredentials": "Email o password errati.",
+        "emailTaken": "Questa email è già in uso.",
+        "usernameTaken": "Questo nome utente è già preso.",
+        "weakPassword": "La password deve avere almeno 8 caratteri.",
+        "generic": "Si è verificato un errore. Riprova."
+      }
+    },
+    "collection": {
+      "title": "La mia collezione",
+      "progress": "{{count}} di {{total}} figurine",
+      "have": "Ho",
+      "double": "Doppio",
+      "need": "Mi serve",
+      "locked": "In scambio",
+      "addSticker": "Aggiungi figurina",
+      "emptyState": "Nessuna figurina in questo album ancora"
+    },
+    "swap": {
+      "title": "Mercato",
+      "newSwap": "Nuovo scambio",
+      "matches": "Corrispondenze",
+      "matchCount": "{{count}} corrispondenze",
+      "matchScore": "{{score}}% corrispondenza",
+      "requestSwap": "Richiedi scambio",
+      "confirmSwap": "Conferma scambio",
+      "cancelSwap": "Annulla scambio",
+      "markShipped": "Segna come spedito",
+      "confirmReceived": "Conferma ricezione",
+      "iGive": "Do",
+      "iReceive": "Ricevo",
+      "tokenLock": "Deposito: {{amount}} token",
+      "trackingRequired": "Numero di tracciamento richiesto",
+      "enterTracking": "Inserisci numero di tracciamento",
+      "status": {
+        "pending": "In attesa",
+        "locked": "Confermato",
+        "shipped_a": "A spedito",
+        "shipped_b": "B spedito",
+        "both_shipped": "Entrambi spediti",
+        "completed": "Completato",
+        "disputed": "In disputa",
+        "cancelled": "Annullato",
+        "expired": "Scaduto"
+      }
+    },
+    "region": {
+      "localOnly": "Corrispondenze locali",
+      "worldwide": "Mondiale",
+      "searchLocal": "Solo nel mio paese",
+      "searchGlobal": "Cerca mondialmente",
+      "localFirst": "Locali prima"
+    },
+    "tokens": {
+      "title": "Token",
+      "balance": "{{count}} token",
+      "buy": "Acquista token",
+      "packages": {
+        "small": "50 token — 0,99€",
+        "medium": "150 token — 2,49€",
+        "large": "500 token — 6,99€"
+      }
+    },
+    "profile": {
+      "title": "Profilo",
+      "reputation": "Reputazione",
+      "swaps": "{{count}} scambi",
+      "member": "Membro dal {{date}}",
+      "editProfile": "Modifica profilo",
+      "plan": {
+        "free": "Gratuito",
+        "pro": "Pro",
+        "dealer": "Rivenditore"
+      },
+      "upgradeToPro": "Passa a Pro"
+    },
+    "common": {
+      "save": "Salva",
+      "cancel": "Annulla",
+      "confirm": "Conferma",
+      "close": "Chiudi",
+      "loading": "Caricamento…",
+      "error": "Errore",
+      "success": "Successo",
+      "retry": "Riprova",
+      "back": "Indietro",
+      "next": "Avanti",
+      "done": "Fatto",
+      "yes": "Sì",
+      "no": "No",
+      "search": "Cerca"
+    }
+  }
+}

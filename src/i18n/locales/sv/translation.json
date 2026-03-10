@@ -1,0 +1,26 @@
+{
+  "translation": {
+    "app": {
+      "name": "StickerSwap"
+    },
+    "nav": {
+      "home": "Hem",
+      "album": "Album",
+      "swap": "Byt",
+      "profile": "Profil"
+    },
+    "region": {
+      "localOnly": "Lokala matchningar",
+      "worldwide": "Världsomspännande",
+      "searchLocal": "Bara i mitt land",
+      "searchGlobal": "Sök globalt",
+      "localFirst": "Lokala först"
+    },
+    "common": {
+      "save": "Spara",
+      "cancel": "Avbryt",
+      "loading": "Laddar…",
+      "search": "Sök"
+    }
+  }
+}

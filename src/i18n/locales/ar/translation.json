@@ -1,13 +1,122 @@
 {
   "translation": {
-    "app": { "name": "ستيكر سواب", "tagline": "منصة تبادل ملصقات بانيني الذكية" },
-    "nav": { "home": "الرئيسية", "album": "الألبوم", "swap": "تبادل", "profile": "الملف الشخصي" },
-    "auth": {
-      "login": "تسجيل الدخول", "logout": "تسجيل الخروج", "register": "إنشاء حساب",
-      "loginWithGoogle": "تسجيل الدخول بواسطة Google", "welcomeBack": "مرحباً بعودتك!",
-      "username": "اسم المستخدم", "email": "البريد الإلكتروني", "password": "كلمة المرور",
-      "errors": { "generic": "حدث خطأ. يرجى المحاولة مرة أخرى." }
+    "app": {
+      "name": "ستيكر سواب",
+      "tagline": "منصة تبادل ملصقات بانيني الذكية"
     },
-    "common": { "save": "حفظ", "cancel": "إلغاء", "close": "إغلاق", "loading": "جارٍ التحميل...", "back": "رجوع", "search": "بحث" }
+    "nav": {
+      "home": "الرئيسية",
+      "album": "الألبوم",
+      "swap": "تبادل",
+      "profile": "الملف الشخصي"
+    },
+    "auth": {
+      "login": "تسجيل الدخول",
+      "logout": "تسجيل الخروج",
+      "register": "إنشاء حساب",
+      "loginWithGoogle": "تسجيل الدخول بواسطة Google",
+      "welcomeBack": "مرحباً بعودتك!",
+      "username": "اسم المستخدم",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "alreadyHaveAccount": "هل لديك حساب؟",
+      "noAccountYet": "ليس لديك حساب بعد؟",
+      "twoFactor": "المصادقة الثنائية",
+      "enterCode": "أدخل الرمز",
+      "enable2FA": "تفعيل 2FA",
+      "errors": {
+        "invalidCredentials": "بريد إلكتروني أو كلمة مرور غير صحيحة.",
+        "emailTaken": "هذا البريد الإلكتروني مستخدم.",
+        "usernameTaken": "اسم المستخدم محجوز.",
+        "weakPassword": "كلمة المرور 8 أحرف على الأقل.",
+        "generic": "حدث خطأ. حاول مرة أخرى."
+      }
+    },
+    "collection": {
+      "title": "مجموعتي",
+      "progress": "{{count}} من {{total}} ملصق",
+      "have": "لديّ",
+      "double": "مكرر",
+      "need": "أحتاجه",
+      "locked": "في التبادل",
+      "addSticker": "إضافة ملصق",
+      "emptyState": "لا توجد ملصقات في هذا الألبوم بعد"
+    },
+    "swap": {
+      "title": "السوق",
+      "newSwap": "تبادل جديد",
+      "matches": "التطابقات",
+      "matchCount": "{{count}} تطابق",
+      "matchScore": "تطابق {{score}}%",
+      "requestSwap": "طلب تبادل",
+      "confirmSwap": "تأكيد التبادل",
+      "cancelSwap": "إلغاء التبادل",
+      "markShipped": "تأكيد الشحن",
+      "confirmReceived": "تأكيد الاستلام",
+      "iGive": "أعطي",
+      "iReceive": "أستلم",
+      "tokenLock": "الوديعة: {{amount}} رمز",
+      "trackingRequired": "رقم التتبع مطلوب",
+      "enterTracking": "أدخل رقم التتبع",
+      "status": {
+        "pending": "في الانتظار",
+        "locked": "مؤكد",
+        "shipped_a": "أ شُحن",
+        "shipped_b": "ب شُحن",
+        "both_shipped": "كلاهما شُحن",
+        "completed": "مكتمل",
+        "disputed": "في النزاع",
+        "cancelled": "ملغى",
+        "expired": "منتهي الصلاحية"
+      }
+    },
+    "region": {
+      "localOnly": "التطابقات المحلية",
+      "worldwide": "عالمي",
+      "searchLocal": "فقط في بلدي",
+      "searchGlobal": "البحث عالمياً",
+      "localFirst": "المحليون أولاً"
+    },
+    "tokens": {
+      "title": "الرموز",
+      "balance": "{{count}} رمز",
+      "buy": "شراء رموز",
+      "packages": {
+        "small": "50 رمز — 0.99€",
+        "medium": "150 رمز — 2.49€",
+        "large": "500 رمز — 6.99€"
+      }
+    },
+    "profile": {
+      "title": "الملف الشخصي",
+      "reputation": "السمعة",
+      "swaps": "{{count}} تبادل",
+      "member": "عضو منذ {{date}}",
+      "editProfile": "تعديل الملف الشخصي",
+      "plan": {
+        "free": "مجاني",
+        "pro": "Pro",
+        "dealer": "تاجر"
+      },
+      "upgradeToPro": "الترقية إلى Pro"
+    },
+    "common": {
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد",
+      "close": "إغلاق",
+      "loading": "جارٍ التحميل…",
+      "error": "خطأ",
+      "success": "نجاح",
+      "retry": "إعادة المحاولة",
+      "back": "رجوع",
+      "next": "التالي",
+      "done": "تم",
+      "yes": "نعم",
+      "no": "لا",
+      "search": "بحث"
+    }
   }
 }

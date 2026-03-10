@@ -1,116 +1,60 @@
 {
   "translation": {
-    "app": {
-      "name": "StickerSwap",
-      "tagline": "Die clevere Panini-Tauschbörse"
-    },
-    "nav": {
-      "home":    "Home",
-      "album":   "Album",
-      "swap":    "Tauschen",
-      "profile": "Profil"
-    },
+    "app": { "name": "StickerSwap", "tagline": "Die clevere Panini-Tauschbörse" },
+    "nav": { "home": "Home", "album": "Album", "swap": "Tauschen", "profile": "Profil" },
     "auth": {
-      "login":              "Anmelden",
-      "logout":             "Abmelden",
-      "register":           "Registrieren",
-      "loginWithGoogle":    "Mit Google anmelden",
-      "welcomeBack":        "Willkommen zurück!",
-      "createAccount":      "Konto erstellen",
-      "username":           "Benutzername",
-      "email":              "E-Mail",
-      "password":           "Passwort",
-      "confirmPassword":    "Passwort bestätigen",
-      "forgotPassword":     "Passwort vergessen?",
-      "alreadyHaveAccount": "Bereits ein Konto?",
-      "noAccountYet":       "Noch kein Konto?",
-      "twoFactor":          "Zwei-Faktor-Authentifizierung",
-      "enterCode":          "Code eingeben",
-      "enable2FA":          "2FA aktivieren",
+      "login": "Anmelden", "logout": "Abmelden", "register": "Registrieren",
+      "loginWithGoogle": "Mit Google anmelden", "welcomeBack": "Willkommen zurück!",
+      "username": "Benutzername", "email": "E-Mail", "password": "Passwort",
+      "confirmPassword": "Passwort bestätigen", "forgotPassword": "Passwort vergessen?",
+      "alreadyHaveAccount": "Bereits ein Konto?", "noAccountYet": "Noch kein Konto?",
+      "twoFactor": "Zwei-Faktor-Authentifizierung", "enterCode": "Code eingeben", "enable2FA": "2FA aktivieren",
       "errors": {
         "invalidCredentials": "Falsche E-Mail oder Passwort.",
-        "emailTaken":         "Diese E-Mail ist bereits vergeben.",
-        "usernameTaken":      "Dieser Benutzername ist bereits belegt.",
-        "weakPassword":       "Passwort muss mindestens 8 Zeichen haben.",
-        "generic":            "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+        "emailTaken": "Diese E-Mail ist bereits vergeben.",
+        "usernameTaken": "Dieser Benutzername ist bereits belegt.",
+        "weakPassword": "Passwort muss mindestens 8 Zeichen haben.",
+        "generic": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
       }
     },
     "collection": {
-      "title":       "Meine Sammlung",
-      "progress":    "{{count}} von {{total}} Stickern",
-      "have":        "Vorhanden",
-      "double":      "Doppelt",
-      "need":        "Fehlt",
-      "locked":      "Im Tausch",
-      "addSticker":  "Sticker hinzufügen",
-      "emptyState":  "Noch keine Sticker in diesem Album"
+      "title": "Meine Sammlung", "progress": "{{count}} von {{total}} Stickern",
+      "have": "Vorhanden", "double": "Doppelt", "need": "Fehlt", "locked": "Im Tausch",
+      "addSticker": "Sticker hinzufügen", "emptyState": "Noch keine Sticker in diesem Album"
     },
     "swap": {
-      "title":          "Tauschbörse",
-      "newSwap":        "Neuer Tausch",
-      "matches":        "Matches",
-      "matchCount":     "{{count}} Matches",
-      "matchScore":     "{{score}}% Match",
-      "requestSwap":    "Tausch anfragen",
-      "confirmSwap":    "Tausch bestätigen",
-      "cancelSwap":     "Tausch abbrechen",
-      "markShipped":    "Als versendet markieren",
-      "confirmReceived":"Empfang bestätigen",
-      "iGive":          "Ich gebe",
-      "iReceive":       "Ich bekomme",
-      "tokenLock":      "Kaution: {{amount}} Token",
-      "trackingRequired": "Tracking-Nummer erforderlich",
-      "enterTracking":  "Tracking-Nummer eingeben",
+      "title": "Tauschbörse", "newSwap": "Neuer Tausch", "matches": "Matches",
+      "matchCount": "{{count}} Matches", "matchScore": "{{score}}% Match",
+      "requestSwap": "Tausch anfragen", "confirmSwap": "Tausch bestätigen",
+      "cancelSwap": "Tausch abbrechen", "markShipped": "Als versendet markieren",
+      "confirmReceived": "Empfang bestätigen", "iGive": "Ich gebe", "iReceive": "Ich bekomme",
+      "tokenLock": "Kaution: {{amount}} Token", "trackingRequired": "Tracking-Nummer erforderlich",
+      "enterTracking": "Tracking-Nummer eingeben",
       "status": {
-        "pending":      "Ausstehend",
-        "locked":       "Bestätigt",
-        "shipped_a":    "A versendet",
-        "shipped_b":    "B versendet",
-        "both_shipped": "Beide versendet",
-        "completed":    "Abgeschlossen",
-        "disputed":     "In Klärung",
-        "cancelled":    "Abgebrochen",
-        "expired":      "Abgelaufen"
+        "pending": "Ausstehend", "locked": "Bestätigt", "shipped_a": "A versendet",
+        "shipped_b": "B versendet", "both_shipped": "Beide versendet",
+        "completed": "Abgeschlossen", "disputed": "In Klärung",
+        "cancelled": "Abgebrochen", "expired": "Abgelaufen"
       }
+    },
+    "region": {
+      "localOnly": "Lokale Matches", "worldwide": "Weltweit",
+      "searchLocal": "Nur in meinem Land", "searchGlobal": "Weltweit suchen",
+      "localFirst": "Lokale zuerst"
     },
     "tokens": {
-      "title":    "Token",
-      "balance":  "{{count}} Token",
-      "buy":      "Token kaufen",
-      "packages": {
-        "small":  "50 Token — 0,99€",
-        "medium": "150 Token — 2,49€",
-        "large":  "500 Token — 6,99€"
-      }
+      "title": "Token", "balance": "{{count}} Token", "buy": "Token kaufen",
+      "packages": { "small": "50 Token — 0,99€", "medium": "150 Token — 2,49€", "large": "500 Token — 6,99€" }
     },
     "profile": {
-      "title":       "Profil",
-      "reputation":  "Reputation",
-      "swaps":       "{{count}} Tausche",
-      "member":      "Mitglied seit {{date}}",
-      "editProfile": "Profil bearbeiten",
-      "plan": {
-        "free":   "Free",
-        "pro":    "Pro",
-        "dealer": "Händler"
-      },
-      "upgradeToPro": "Auf Pro upgraden"
+      "title": "Profil", "reputation": "Reputation", "swaps": "{{count}} Tausche",
+      "member": "Mitglied seit {{date}}", "editProfile": "Profil bearbeiten",
+      "plan": { "free": "Free", "pro": "Pro", "dealer": "Händler" }, "upgradeToPro": "Auf Pro upgraden"
     },
     "common": {
-      "save":     "Speichern",
-      "cancel":   "Abbrechen",
-      "confirm":  "Bestätigen",
-      "close":    "Schließen",
-      "loading":  "Lädt...",
-      "error":    "Fehler",
-      "success":  "Erfolgreich",
-      "retry":    "Erneut versuchen",
-      "back":     "Zurück",
-      "next":     "Weiter",
-      "done":     "Fertig",
-      "yes":      "Ja",
-      "no":       "Nein",
-      "search":   "Suchen"
+      "save": "Speichern", "cancel": "Abbrechen", "confirm": "Bestätigen", "close": "Schließen",
+      "loading": "Lädt...", "error": "Fehler", "success": "Erfolgreich", "retry": "Erneut versuchen",
+      "back": "Zurück", "next": "Weiter", "done": "Fertig", "yes": "Ja", "no": "Nein", "search": "Suchen"
     }
   }
 }

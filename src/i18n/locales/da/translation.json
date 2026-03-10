@@ -1,0 +1,26 @@
+{
+  "translation": {
+    "app": {
+      "name": "StickerSwap"
+    },
+    "nav": {
+      "home": "Hjem",
+      "album": "Album",
+      "swap": "Byt",
+      "profile": "Profil"
+    },
+    "region": {
+      "localOnly": "Lokale matches",
+      "worldwide": "Verdensomspændende",
+      "searchLocal": "Kun i mit land",
+      "searchGlobal": "Søg globalt",
+      "localFirst": "Lokale først"
+    },
+    "common": {
+      "save": "Gem",
+      "cancel": "Annuller",
+      "loading": "Indlæser…",
+      "search": "Søg"
+    }
+  }
+}

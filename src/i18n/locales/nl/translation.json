@@ -2,115 +2,62 @@
   "translation": {
     "app": {
       "name": "StickerSwap",
-      "tagline": "The smart Panini trading platform"
+      "tagline": "De slimme Panini-ruilbeurs"
     },
     "nav": {
-      "home":    "Home",
-      "album":   "Album",
-      "swap":    "Trade",
-      "profile": "Profile"
+      "home": "Home",
+      "album": "Album",
+      "swap": "Ruilen",
+      "profile": "Profiel"
     },
     "auth": {
-      "login":              "Sign in",
-      "logout":             "Sign out",
-      "register":           "Register",
-      "loginWithGoogle":    "Sign in with Google",
-      "welcomeBack":        "Welcome back!",
-      "createAccount":      "Create account",
-      "username":           "Username",
-      "email":              "Email",
-      "password":           "Password",
-      "confirmPassword":    "Confirm password",
-      "forgotPassword":     "Forgot password?",
-      "alreadyHaveAccount": "Already have an account?",
-      "noAccountYet":       "Don't have an account yet?",
-      "twoFactor":          "Two-factor authentication",
-      "enterCode":          "Enter code",
-      "enable2FA":          "Enable 2FA",
+      "login": "Inloggen",
+      "logout": "Uitloggen",
+      "register": "Registreren",
+      "loginWithGoogle": "Inloggen met Google",
+      "welcomeBack": "Welkom terug!",
+      "username": "Gebruikersnaam",
+      "email": "E-mail",
+      "password": "Wachtwoord",
       "errors": {
-        "invalidCredentials": "Invalid email or password.",
-        "emailTaken":         "This email is already taken.",
-        "usernameTaken":      "This username is already taken.",
-        "weakPassword":       "Password must be at least 8 characters.",
-        "generic":            "An error occurred. Please try again."
+        "generic": "Er is een fout opgetreden. Probeer het opnieuw."
       }
     },
     "collection": {
-      "title":       "My Collection",
-      "progress":    "{{count}} of {{total}} stickers",
-      "have":        "Have",
-      "double":      "Double",
-      "need":        "Need",
-      "locked":      "In trade",
-      "addSticker":  "Add sticker",
-      "emptyState":  "No stickers in this album yet"
+      "title": "Mijn collectie",
+      "have": "Heb ik",
+      "double": "Dubbel",
+      "need": "Mis ik",
+      "locked": "In ruil"
     },
     "swap": {
-      "title":          "Marketplace",
-      "newSwap":        "New trade",
-      "matches":        "Matches",
-      "matchCount":     "{{count}} matches",
-      "matchScore":     "{{score}}% match",
-      "requestSwap":    "Request trade",
-      "confirmSwap":    "Confirm trade",
-      "cancelSwap":     "Cancel trade",
-      "markShipped":    "Mark as shipped",
-      "confirmReceived":"Confirm received",
-      "iGive":          "I give",
-      "iReceive":       "I receive",
-      "tokenLock":      "Deposit: {{amount}} tokens",
-      "trackingRequired": "Tracking number required",
-      "enterTracking":  "Enter tracking number",
+      "title": "Marktplaats",
+      "requestSwap": "Ruilverzoek sturen",
+      "matchScore": "{{score}}% overeenkomst",
       "status": {
-        "pending":      "Pending",
-        "locked":       "Confirmed",
-        "shipped_a":    "A shipped",
-        "shipped_b":    "B shipped",
-        "both_shipped": "Both shipped",
-        "completed":    "Completed",
-        "disputed":     "In dispute",
-        "cancelled":    "Cancelled",
-        "expired":      "Expired"
+        "pending": "In afwachting",
+        "completed": "Voltooid",
+        "cancelled": "Geannuleerd"
       }
     },
-    "tokens": {
-      "title":    "Tokens",
-      "balance":  "{{count}} tokens",
-      "buy":      "Buy tokens",
-      "packages": {
-        "small":  "50 tokens — €0.99",
-        "medium": "150 tokens — €2.49",
-        "large":  "500 tokens — €6.99"
-      }
-    },
-    "profile": {
-      "title":       "Profile",
-      "reputation":  "Reputation",
-      "swaps":       "{{count}} trades",
-      "member":      "Member since {{date}}",
-      "editProfile": "Edit profile",
-      "plan": {
-        "free":   "Free",
-        "pro":    "Pro",
-        "dealer": "Dealer"
-      },
-      "upgradeToPro": "Upgrade to Pro"
+    "region": {
+      "localOnly": "Lokale overeenkomsten",
+      "worldwide": "Wereldwijd",
+      "searchLocal": "Alleen in mijn land",
+      "searchGlobal": "Wereldwijd zoeken",
+      "localFirst": "Lokaal eerst"
     },
     "common": {
-      "save":     "Save",
-      "cancel":   "Cancel",
-      "confirm":  "Confirm",
-      "close":    "Close",
-      "loading":  "Loading...",
-      "error":    "Error",
-      "success":  "Success",
-      "retry":    "Retry",
-      "back":     "Back",
-      "next":     "Next",
-      "done":     "Done",
-      "yes":      "Yes",
-      "no":       "No",
-      "search":   "Search"
+      "save": "Opslaan",
+      "cancel": "Annuleren",
+      "confirm": "Bevestigen",
+      "close": "Sluiten",
+      "loading": "Laden…",
+      "error": "Fout",
+      "success": "Geslaagd",
+      "back": "Terug",
+      "done": "Klaar",
+      "search": "Zoeken"
     }
   }
 }
