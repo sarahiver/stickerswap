@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StickerSwap — Offline</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a0f;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .icon { font-size: 64px; margin-bottom: 16px; }
+    h1 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    p  { font-size: 14px; color: rgba(255,255,255,0.5); max-width: 280px; line-height: 1.6; }
+    button {
+      margin-top: 24px;
+      padding: 14px 28px;
+      background: #7c6fcd;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+  </style>
+</head>
+<body>
+  <div class="icon">📡</div>
+  <h1>Kein Internet</h1>
+  <p>StickerSwap benötigt eine Verbindung für neue Daten. Gecachte Inhalte sind weiterhin verfügbar.</p>
+  <button onclick="window.location.reload()">Erneut versuchen</button>
+</body>
+</html>
