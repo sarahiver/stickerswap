@@ -1,676 +1,385 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 
-/* ─────────────────────────────────────────────
-   ANIMATIONS
-───────────────────────────────────────────── */
-const fadeInUp = keyframes`
-  from { opacity: 0; transform: translateY(32px); }
-  to   { opacity: 1; transform: translateY(0); }
-`;
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to   { opacity: 1; }
-`;
-const float = keyframes`
-  0%,100% { transform: translateY(0px) rotate(-2deg); }
-  50%     { transform: translateY(-12px) rotate(1deg); }
-`;
-const float2 = keyframes`
-  0%,100% { transform: translateY(0px) rotate(3deg); }
-  50%     { transform: translateY(-16px) rotate(-1deg); }
-`;
-const glowPulse = keyframes`
-  0%,100% { box-shadow: 0 0 20px rgba(245,200,66,0.2), 0 4px 24px rgba(0,0,0,0.5); }
-  50%     { box-shadow: 0 0 48px rgba(245,200,66,0.5), 0 4px 24px rgba(0,0,0,0.5); }
-`;
-const countUp = keyframes`
-  from { opacity: 0; transform: scale(0.7) translateY(10px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-`;
-const scanLine = keyframes`
-  0%   { transform: translateY(-100%); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translateY(400%); opacity: 0; }
-`;
+/* ─── ANIMATIONS ─── */
+const fadeUp  = keyframes`from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}`;
+const float   = keyframes`0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-12px) rotate(1deg)}`;
+const float2  = keyframes`0%,100%{transform:translateY(0) rotate(2deg)}50%{transform:translateY(-16px) rotate(-1deg)}`;
+const glowCta = keyframes`0%,100%{box-shadow:0 0 20px rgba(245,200,66,0.2),0 4px 24px rgba(0,0,0,.4)}50%{box-shadow:0 0 48px rgba(245,200,66,.5),0 4px 24px rgba(0,0,0,.4)}`;
+const pulseDot= keyframes`0%,100%{opacity:1}50%{opacity:.3}`;
 
-/* ─────────────────────────────────────────────
-   LAYOUT
-───────────────────────────────────────────── */
-const Page = styled.div`
-  min-height: 100vh;
-  background: var(--bg);
-  overflow-x: hidden;
-`;
-
-/* NAV */
+/* ─── NAV ─── */
 const Nav = styled.nav`
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 100;
-  height: var(--nav-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  background: rgba(10,10,15,0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(42,42,58,0.6);
-  animation: ${fadeIn} 0.4s ease;
+  padding: 0 32px;
+  height: 64px;
+  background: rgba(10,10,15,0.95);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
 `;
 
 const Logo = styled.div`
   font-family: var(--font-display);
-  font-size: 26px;
-  letter-spacing: 0.06em;
+  font-size: 28px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
   cursor: pointer;
-  span { color: var(--accent); }
-  em { color: var(--accent2); font-style: normal; }
+  span { color: var(--accent2); }
 `;
 
-const NavActions = styled.div`
+const NavLinks = styled.div`
   display: flex;
-  gap: 10px;
   align-items: center;
-`;
-
-const BtnOutline = styled.button`
-  padding: 9px 20px;
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-sm);
-  color: var(--text2);
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s var(--ease);
-  &:hover { border-color: var(--accent3); color: var(--accent3); }
-`;
-
-const BtnPrimary = styled.button`
-  padding: 9px 22px;
-  background: var(--accent);
-  border-radius: var(--radius-sm);
-  color: #0a0a0f;
-  font-size: 14px;
-  font-weight: 700;
-  transition: all 0.2s var(--ease);
-  &:hover {
-    background: #f7d45c;
-    transform: translateY(-1px);
-    box-shadow: var(--glow-gold);
-  }
-  &:active { transform: translateY(0); }
+  gap: 8px;
 `;
 
 /* ─── HERO ─── */
 const HeroSection = styled.section`
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--nav-height) + 48px) 24px 80px;
+  padding: 80px 32px;
+  text-align: center;
   position: relative;
   overflow: hidden;
-  text-align: center;
+  min-height: calc(100vh - 64px);
 `;
 
 const HeroBg = styled.div`
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse 65% 45% at 15% 55%, rgba(245,200,66,0.07) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 65% at 85% 25%, rgba(232,67,90,0.06) 0%, transparent 65%),
-    radial-gradient(ellipse 45% 55% at 55% 85%, rgba(74,222,174,0.05) 0%, transparent 65%);
-  pointer-events: none;
+    radial-gradient(ellipse 60% 40% at 20% 50%, rgba(245,200,66,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 80% 30%, rgba(232,67,90,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 50% at 60% 80%, rgba(74,222,174,0.05) 0%, transparent 70%);
 `;
 
 const GridBg = styled.div`
-  position: absolute;
-  inset: 0;
-  opacity: 0.035;
+  position: absolute; inset: 0; opacity: 0.04; pointer-events: none;
   background-image:
-    repeating-linear-gradient(0deg, var(--accent) 0px, transparent 1px, transparent 64px, var(--accent) 65px),
-    repeating-linear-gradient(90deg, var(--accent) 0px, transparent 1px, transparent 64px, var(--accent) 65px);
-  pointer-events: none;
+    repeating-linear-gradient(0deg,  var(--accent) 0px, transparent 1px, transparent 60px, var(--accent) 61px),
+    repeating-linear-gradient(90deg, var(--accent) 0px, transparent 1px, transparent 60px, var(--accent) 61px);
 `;
 
 const Eyebrow = styled.div`
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
   color: var(--accent3);
-  padding: 6px 18px;
+  padding: 6px 16px;
   border: 1px solid rgba(74,222,174,0.3);
   border-radius: 100px;
-  background: rgba(74,222,174,0.06);
-  margin-bottom: 24px;
-  position: relative;
-  z-index: 1;
+  background: rgba(74,222,174,0.05);
+  position: relative; z-index: 1;
+  margin-bottom: 20px;
   display: inline-block;
-  animation: ${fadeInUp} 0.6s ease both;
-  animation-delay: 0.1s;
+  animation: ${fadeUp} 0.6s ease both 0.1s;
 `;
 
 const HeroTitle = styled.h1`
-  font-size: clamp(56px, 11vw, 128px);
+  font-size: clamp(64px, 11vw, 130px);
   line-height: 0.92;
-  letter-spacing: 0.025em;
-  margin-bottom: 28px;
-  position: relative;
-  z-index: 1;
-  animation: ${fadeInUp} 0.6s ease both;
-  animation-delay: 0.2s;
+  letter-spacing: 0.02em;
+  position: relative; z-index: 1;
+  margin-bottom: 24px;
+  animation: ${fadeUp} 0.6s ease both 0.2s;
 
-  .line1 { display: block; color: var(--text); }
-  .line2 { display: block; color: var(--accent); }
+  .line2 { color: var(--accent); display: block; }
 `;
 
 const HeroSub = styled.p`
   font-size: 18px;
   color: var(--muted);
-  max-width: 500px;
-  line-height: 1.65;
-  margin-bottom: 44px;
-  position: relative;
-  z-index: 1;
-  animation: ${fadeInUp} 0.6s ease both;
-  animation-delay: 0.3s;
-
-  strong { color: var(--text2); font-weight: 500; }
+  max-width: 520px;
+  line-height: 1.6;
+  position: relative; z-index: 1;
+  margin-bottom: 40px;
+  animation: ${fadeUp} 0.6s ease both 0.3s;
 `;
 
 const HeroActions = styled.div`
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
-  position: relative;
-  z-index: 1;
-  animation: ${fadeInUp} 0.6s ease both;
-  animation-delay: 0.4s;
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  position: relative; z-index: 1;
+  animation: ${fadeUp} 0.6s ease both 0.4s;
 `;
 
-const BtnHeroPrimary = styled.button`
-  padding: 16px 36px;
+const BtnCta = styled.button`
+  padding: 14px 28px;
+  font-size: 16px; font-weight: 700;
   background: var(--accent);
-  border-radius: var(--radius);
   color: #0a0a0f;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  animation: ${glowPulse} 3s ease-in-out infinite;
-  transition: transform 0.2s var(--ease), filter 0.2s;
-  white-space: nowrap;
-  &:hover { transform: translateY(-2px) scale(1.02); filter: brightness(1.1); }
-  &:active { transform: translateY(0) scale(0.98); }
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  animation: ${glowCta} 3s ease-in-out infinite;
+  transition: transform 0.2s, filter 0.2s;
+  &:hover { transform: translateY(-2px); filter: brightness(1.08); }
+  &:active { transform: translateY(0); }
 `;
 
-const BtnHeroGhost = styled.button`
-  padding: 15px 28px;
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  color: var(--text2);
-  font-size: 15px;
-  font-weight: 500;
-  transition: all 0.2s var(--ease);
-  white-space: nowrap;
-  &:hover { border-color: var(--accent3); color: var(--accent3); background: rgba(74,222,174,0.05); }
-`;
-
-/* ─── FLOATING STICKER CARDS ─── */
-const FloatingCards = styled.div`
-  position: relative;
-  z-index: 1;
-  margin-top: 64px;
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
-  animation: ${fadeIn} 0.8s ease both;
-  animation-delay: 0.5s;
-
-  @media (max-width: 600px) { gap: 12px; }
+/* ─── FLOATING DEMO CARDS ─── */
+const FloatRow = styled.div`
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+  margin-top: 56px;
+  position: relative; z-index: 1;
+  animation: ${fadeUp} 0.7s ease both 0.5s;
 `;
 
 const FloatCard = styled.div`
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 14px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  animation: ${p => p.$float2 ? float2 : float} ${p => p.$duration || '4s'} ease-in-out infinite;
-  animation-delay: ${p => p.$delay || '0s'};
+  border-radius: 14px;
+  padding: 16px 20px;
+  min-width: 150px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
-  min-width: 140px;
-
-  @media (max-width: 480px) { min-width: 110px; padding: 10px 12px; }
+  animation: ${p => p.$float2 ? float2 : float} ${p => p.$dur || '4s'} ease-in-out infinite;
+  animation-delay: ${p => p.$delay || '0s'};
 `;
 
-const CardAlbumName = styled.div`
+const CardLabel = styled.div`
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 10px;
 `;
 
-const CardRow = styled.div`
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+const ChipRow = styled.div`
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;
+`;
+
+const Chip = styled.span`
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.06) inset;
+
+  &.have   { background: rgba(74,222,174,0.1);  border: 1px solid rgba(74,222,174,0.25); color: var(--accent3); }
+  &.double { background: rgba(245,200,66,0.1);  border: 1px solid rgba(245,200,66,0.25); color: var(--accent); }
+  &.need   { background: rgba(124,111,205,0.1); border: 1px solid rgba(124,111,205,0.25); color: var(--accent4); }
 `;
 
 /* ─── STATS ─── */
 const StatsRow = styled.div`
-  display: flex;
-  gap: 48px;
-  margin-top: 64px;
-  position: relative;
-  z-index: 1;
-  animation: ${fadeInUp} 0.6s ease both;
-  animation-delay: 0.6s;
-
+  display: flex; gap: 48px; margin-top: 64px;
+  position: relative; z-index: 1;
+  animation: ${fadeUp} 0.6s ease both 0.6s;
   @media (max-width: 480px) { gap: 28px; }
 `;
 
-const Stat = styled.div`
-  text-align: center;
-`;
+const Stat = styled.div`text-align: center;`;
 const StatNum = styled.span`
   font-family: var(--font-display);
-  font-size: 44px;
-  color: var(--accent);
-  display: block;
-  line-height: 1;
-  animation: ${countUp} 0.8s var(--ease) both;
-  animation-delay: ${p => p.$delay || '0.7s'};
+  font-size: 42px; color: var(--accent);
+  display: block; line-height: 1;
 `;
-const StatLabel = styled.span`
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
-  display: block;
-  font-family: var(--font-mono);
-  letter-spacing: 0.06em;
+const StatLabel = styled.div`font-size: 13px; color: var(--muted); margin-top: 4px;`;
+
+/* ─── SECTIONS ─── */
+const SectionWrap = styled.section`
+  padding: 80px 32px;
+  max-width: 1200px; margin: 0 auto; width: 100%;
 `;
 
-/* ─── HOW IT WORKS ─── */
-const Section = styled.section`
-  padding: 100px 24px;
-  max-width: 1100px;
-  margin: 0 auto;
-  width: 100%;
-`;
-
-const SectionHeader = styled.div`
-  margin-bottom: 56px;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: clamp(42px, 7vw, 72px);
-  letter-spacing: 0.04em;
-  margin-bottom: 10px;
+const SectionTitle = styled.div`
+  font-family: var(--font-display);
+  font-size: 52px; letter-spacing: 0.04em;
+  margin-bottom: 8px;
 `;
 
 const SectionSub = styled.p`
-  color: var(--muted);
-  font-size: 16px;
+  color: var(--muted); margin-bottom: 48px; font-size: 16px;
 `;
 
-const StepsGrid = styled.div`
+/* ─── FEATURES ─── */
+const FeaturesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
 `;
 
-const StepCard = styled.div`
+const FeatureCard = styled.div`
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 32px 28px;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
-
+  border-radius: 16px; padding: 28px;
+  transition: all 0.3s; position: relative; overflow: hidden;
   &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    background: ${p => p.$gradient};
+    content: ''; position: absolute; inset: 0; opacity: 0;
+    background: linear-gradient(135deg, rgba(245,200,66,0.05), transparent);
     transition: opacity 0.3s;
   }
-
-  &:hover {
-    border-color: ${p => p.$accent};
-    transform: translateY(-3px);
-    &::before { opacity: 1; }
-  }
+  &:hover { border-color: rgba(245,200,66,0.35); transform: translateY(-2px); }
+  &:hover::before { opacity: 1; }
 `;
 
-const StepNum = styled.div`
-  font-family: var(--font-display);
-  font-size: 72px;
-  color: ${p => p.$color};
-  opacity: 0.12;
-  position: absolute;
-  top: 12px;
-  right: 20px;
-  line-height: 1;
-  pointer-events: none;
+const FeatureIcon = styled.div`
+  width: 48px; height: 48px;
+  background: var(--surface2); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-bottom: 16px;
 `;
 
-const StepIconWrap = styled.div`
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: ${p => p.$bg};
-  border: 1px solid ${p => p.$border};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 1;
+/* ─── TRUST ─── */
+const TrustSectionWrap = styled.div`
+  background: linear-gradient(135deg, rgba(74,222,174,0.05), var(--bg));
+  border: 1px solid rgba(74,222,174,0.2);
+  border-radius: 16px; padding: 32px;
 `;
 
-const StepTitle = styled.h3`
-  font-family: var(--font-display);
-  font-size: 26px;
-  letter-spacing: 0.04em;
-  margin-bottom: 10px;
-  color: var(--text);
-  position: relative;
-  z-index: 1;
-`;
-
-const StepDesc = styled.p`
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.65;
-  position: relative;
-  z-index: 1;
-`;
-
-/* ─── SCANNER VISUAL ─── */
-const ScannerVisual = styled.div`
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
-  margin: 0 auto 8px;
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent3), transparent);
-    animation: ${scanLine} 2s ease-in-out infinite;
-    animation-delay: ${p => p.$delay || '0s'};
-  }
-`;
-
-const ScannerGrid = styled.div`
+const TrustGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-  padding: 8px;
-  height: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px; margin-top: 24px;
 `;
 
-const ScannerCell = styled.div`
-  border-radius: 3px;
-  background: ${p => p.$color || 'var(--surface3)'};
-  opacity: ${p => p.$opacity || 1};
+const TrustItem = styled.div`
+  display: flex; gap: 12px; align-items: flex-start;
 `;
 
-/* ─── SOCIAL PROOF ─── */
-const ProofSection = styled.section`
+/* ─── PRICING ─── */
+const MonoSection = styled.section`
   background: var(--surface);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 80px 24px;
-  text-align: center;
+  padding: 80px 32px;
 `;
 
-const ProofInner = styled.div`
-  max-width: 900px;
-  margin: 0 auto;
-`;
-
-const ProofBadge = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 20px 8px 12px;
-  background: rgba(74,222,174,0.08);
-  border: 1px solid rgba(74,222,174,0.2);
-  border-radius: 100px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent3);
-  margin-bottom: 48px;
-`;
-
-const LiveDot = styled.div`
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent3);
-  box-shadow: 0 0 8px var(--accent3);
-  animation: ${keyframes`
-    0%,100% { opacity: 1; }
-    50%      { opacity: 0.3; }
-  `} 1.5s ease-in-out infinite;
-`;
-
-const CounterDisplay = styled.div`
-  font-family: var(--font-display);
-  font-size: clamp(64px, 12vw, 120px);
-  line-height: 1;
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, var(--accent) 30%, var(--accent2) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 16px;
-`;
-
-const CounterLabel = styled.p`
-  font-size: 18px;
-  color: var(--text2);
-  max-width: 400px;
-  margin: 0 auto 48px;
-  line-height: 1.5;
-
-  strong { color: var(--accent3); font-weight: 600; }
-`;
-
-const ProofGrid = styled.div`
+const PricingGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  text-align: left;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px; max-width: 1000px; margin: 0 auto 48px;
+`;
 
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-    gap: 12px;
+const PricingCard = styled.div`
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 32px;
+  transition: all 0.3s;
+  position: relative;
+  &:hover { transform: translateY(-2px); border-color: rgba(245,200,66,0.2); }
+
+  &.featured {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, rgba(245,200,66,0.07), var(--bg));
+  }
+  &.featured::after {
+    content: 'BELIEBT';
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: var(--bg);
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    padding: 4px 14px; border-radius: 100px; letter-spacing: 0.1em;
   }
 `;
 
-const ProofCard = styled.div`
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  transition: border-color 0.2s;
-  &:hover { border-color: var(--border2); }
+const PricingName = styled.h3`
+  font-family: var(--font-display);
+  font-size: 24px; letter-spacing: 0.06em; margin-bottom: 8px;
 `;
 
-const ProofCardTop = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+const Price = styled.div`
+  font-size: 38px; font-weight: 700; color: var(--accent); line-height: 1;
+  margin-bottom: 12px;
+  span { font-size: 16px; color: var(--muted); font-weight: 400; }
 `;
 
-const Avatar = styled.div`
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: ${p => p.$bg};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
+const PricingDesc = styled.p`
+  font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5;
 `;
 
-const AvatarName = styled.div`
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-`;
-const AvatarSub = styled.div`
-  font-size: 11px;
-  color: var(--muted);
-  font-family: var(--font-mono);
-`;
-
-const ProofCardText = styled.p`
-  font-size: 13px;
-  color: var(--text2);
-  line-height: 1.55;
+const PricingList = styled.ul`
+  list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px;
+  li {
+    font-size: 13px; display: flex; align-items: center; gap: 8px; line-height: 1.4;
+    &::before { content: '✓'; color: var(--accent3); font-weight: 700; flex-shrink: 0; }
+    &.disabled { opacity: 0.3; text-decoration: line-through;
+      &::before { content: '✕'; color: var(--muted); }
+    }
+  }
 `;
 
-/* ─── CTA ─── */
+/* ─── REVENUE CARDS ─── */
+const RevenueGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px; margin-top: 24px;
+`;
+
+const RevenueCard = styled.div`
+  background: linear-gradient(135deg, rgba(245,200,66,0.1), var(--surface));
+  border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 16px; padding: 24px;
+  display: flex; align-items: center; gap: 20px;
+  transition: transform 0.2s;
+  &:hover { transform: translateY(-2px); }
+`;
+
+/* ─── CONCEPT ─── */
+const ConceptSection = styled.section`
+  padding: 80px 32px;
+  max-width: 1000px; margin: 0 auto;
+`;
+
+const ConceptRow = styled.div`
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
+`;
+
+const ConceptCard = styled.div`
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 28px;
+  h3 {
+    font-family: var(--font-display); font-size: 22px; letter-spacing: 0.05em;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+  }
+  ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  li {
+    font-size: 14px; color: var(--muted); display: flex; gap: 8px; line-height: 1.5;
+    &::before { content: '→'; color: var(--accent); flex-shrink: 0; font-weight: 700; }
+    strong { color: var(--text2); }
+  }
+`;
+
+/* ─── CTA BOTTOM ─── */
 const CtaSection = styled.section`
-  padding: 100px 24px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-
+  text-align: center; padding: 80px 32px;
+  position: relative; overflow: hidden;
   &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    height: 300px;
+    content: ''; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 600px; height: 300px;
     background: radial-gradient(ellipse, rgba(245,200,66,0.06) 0%, transparent 70%);
     pointer-events: none;
   }
 `;
 
-const CtaTitle = styled.h2`
-  font-size: clamp(48px, 9vw, 100px);
-  line-height: 0.92;
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 1;
-
-  .gold { color: var(--accent); }
-`;
-
-const CtaSub = styled.p`
-  font-size: 17px;
-  color: var(--muted);
-  margin-bottom: 40px;
-  position: relative;
-  z-index: 1;
-`;
-
-const BtnCtaLarge = styled.button`
-  padding: 18px 48px;
-  background: var(--accent);
-  border-radius: var(--radius);
-  color: #0a0a0f;
-  font-size: 17px;
-  font-weight: 700;
-  animation: ${glowPulse} 3s ease-in-out infinite;
-  transition: transform 0.2s var(--ease);
-  position: relative;
-  z-index: 1;
-  &:hover { transform: translateY(-2px) scale(1.02); filter: brightness(1.08); }
-  &:active { transform: translateY(0); }
-`;
-
-const CtaNote = styled.p`
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 16px;
-  position: relative;
-  z-index: 1;
-`;
-
 /* ─── FOOTER ─── */
 const Footer = styled.footer`
   border-top: 1px solid var(--border);
-  padding: 32px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-
-  @media (max-width: 480px) { flex-direction: column; text-align: center; }
+  padding: 32px; text-align: center;
+  color: var(--muted); font-size: 13px;
 `;
 
-const FooterLogo = styled.div`
-  font-family: var(--font-display);
-  font-size: 20px;
-  letter-spacing: 0.06em;
-  span { color: var(--accent); }
-  em { color: var(--accent2); font-style: normal; }
-`;
-
-const FooterLinks = styled.div`
-  display: flex;
-  gap: 24px;
-  a {
-    font-size: 13px;
-    color: var(--muted);
-    &:hover { color: var(--text2); }
-  }
-`;
-
-/* ─── ANIMATED COUNTER HOOK ─── */
-function useCountUp(target, duration = 1800, start = false) {
-  const [value, setValue] = useState(0);
+/* ─── COUNTER HOOK ─── */
+function useCountUp(target, duration = 1800, active = false) {
+  const [val, setVal] = useState(0);
   useEffect(() => {
-    if (!start) return;
-    let startTime = null;
-    const startVal = 0;
+    if (!active) return;
+    let start = null;
     const step = (ts) => {
-      if (!startTime) startTime = ts;
-      const progress = Math.min((ts - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setValue(Math.floor(startVal + (target - startVal) * eased));
-      if (progress < 1) requestAnimationFrame(step);
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      setVal(Math.floor(target * e));
+      if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
-  }, [target, duration, start]);
-  return value;
+  }, [target, duration, active]);
+  return val;
 }
 
 /* ─────────────────────────────────────────────
@@ -678,33 +387,37 @@ function useCountUp(target, duration = 1800, start = false) {
 ───────────────────────────────────────────── */
 export default function LandingPage() {
   const navigate = useNavigate();
-  const proofRef = useRef(null);
-  const [counterStarted, setCounterStarted] = useState(false);
-  const swapCount = useCountUp(1247, 2000, counterStarted);
+  const statsRef = useRef(null);
+  const [statsVisible, setStatsVisible] = useState(false);
 
-  // Start counter when proof section enters viewport
+  const swapCount    = useCountUp(312000, 2200, statsVisible);
+  const userCount    = useCountUp(48000,  2000, statsVisible);
+  const satisfaction = useCountUp(96,     1500, statsVisible);
+
   useEffect(() => {
-    const el = proofRef.current;
+    const el = statsRef.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setCounterStarted(true); obs.disconnect(); } },
+      ([e]) => { if (e.isIntersecting) { setStatsVisible(true); obs.disconnect(); } },
       { threshold: 0.3 }
     );
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
 
-  const goToLogin = () => navigate('/login');
+  const goLogin    = () => navigate('/login');
+  const goRegister = () => navigate('/login');
 
   return (
-    <Page>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+
       {/* ─── NAV ─── */}
       <Nav>
-        <Logo>STICKER<span>SWAP</span><em>.</em></Logo>
-        <NavActions>
-          <BtnOutline onClick={goToLogin}>Anmelden</BtnOutline>
-          <BtnPrimary onClick={goToLogin}>Kostenlos starten</BtnPrimary>
-        </NavActions>
+        <Logo>Sticker<span>Swap</span></Logo>
+        <NavLinks>
+          <button className="btn btn-ghost" onClick={goLogin}>Anmelden</button>
+          <button className="btn btn-primary" onClick={goRegister}>Kostenlos starten</button>
+        </NavLinks>
       </Nav>
 
       {/* ─── HERO ─── */}
@@ -712,212 +425,293 @@ export default function LandingPage() {
         <HeroBg />
         <GridBg />
 
-        <Eyebrow>⚡ WM 2026 Edition — jetzt live</Eyebrow>
+        <Eyebrow>🏆 Für WM 2026 &amp; EM Panini-Sammler</Eyebrow>
 
         <HeroTitle>
-          <span className="line1">Tausche dich</span>
-          <span className="line2">zum vollen Album.</span>
+          TAUSCH.
+          <span className="line2">SAMMLE.<br />GEWINNE.</span>
         </HeroTitle>
 
         <HeroSub>
-          Verbinde dich mit Sammlern in deiner Region.<br />
-          <strong>Doubles raus, Fehlende rein</strong> — smart, sicher, kostenlos.
+          Die erste Panini-Tauschbörse mit verifiziertem Benutzersystem, Betrugschutz und
+          über 1.000 Stickern pro Album — endlich wirklich einfach.
         </HeroSub>
 
         <HeroActions>
-          <BtnHeroPrimary onClick={goToLogin}>🚀 Jetzt kostenlos starten</BtnHeroPrimary>
-          <BtnHeroGhost>Wie funktioniert's?</BtnHeroGhost>
+          <BtnCta onClick={goRegister}>Jetzt kostenlos registrieren</BtnCta>
+          <button className="btn btn-secondary" onClick={goLogin}>Demo ansehen →</button>
         </HeroActions>
 
-        {/* Floating sticker preview cards */}
-        <FloatingCards>
-          <FloatCard $delay="0s" $duration="4.2s">
-            <CardAlbumName>WM 2026 · Gruppe A</CardAlbumName>
-            <CardRow>
-              <span className="sticker-pill double">2× #142</span>
-              <span className="sticker-pill double">3× #89</span>
-            </CardRow>
-            <CardRow>
-              <span className="sticker-pill need">#201</span>
-              <span className="sticker-pill need">#78</span>
-            </CardRow>
+        {/* Floating sticker preview */}
+        <FloatRow>
+          <FloatCard $delay="0s" $dur="4.2s">
+            <CardLabel>WM 2026 · Gruppe A</CardLabel>
+            <ChipRow>
+              <Chip className="double">2× #142</Chip>
+              <Chip className="double">3× #89</Chip>
+            </ChipRow>
+            <ChipRow>
+              <Chip className="need">#201</Chip>
+              <Chip className="need">#78</Chip>
+            </ChipRow>
           </FloatCard>
 
-          <FloatCard $float2 $delay="0.6s" $duration="5s">
-            <CardAlbumName>Bundesliga 24/25</CardAlbumName>
-            <CardRow>
-              <span className="sticker-pill have">#44</span>
-              <span className="sticker-pill have">#98</span>
-              <span className="sticker-pill have">#3</span>
-            </CardRow>
-            <CardRow>
-              <span className="sticker-pill need">#201</span>
-            </CardRow>
+          <FloatCard $float2 $delay="0.7s" $dur="5s">
+            <CardLabel>Bundesliga 24/25</CardLabel>
+            <ChipRow>
+              <Chip className="have">#44</Chip>
+              <Chip className="have">#98</Chip>
+              <Chip className="have">#3</Chip>
+            </ChipRow>
+            <ChipRow>
+              <Chip className="need">#201</Chip>
+            </ChipRow>
           </FloatCard>
 
-          <FloatCard $delay="1.1s" $duration="3.8s">
-            <CardAlbumName>Champions League</CardAlbumName>
-            <CardRow>
-              <span className="sticker-pill double">2× #17</span>
-            </CardRow>
-            <CardRow>
-              <span className="sticker-pill need">#55</span>
-              <span className="sticker-pill need">#99</span>
-            </CardRow>
+          <FloatCard $delay="1.2s" $dur="3.9s">
+            <CardLabel>Champions League</CardLabel>
+            <ChipRow>
+              <Chip className="double">2× #17</Chip>
+            </ChipRow>
+            <ChipRow>
+              <Chip className="need">#55</Chip>
+              <Chip className="need">#99</Chip>
+            </ChipRow>
           </FloatCard>
-        </FloatingCards>
+        </FloatRow>
 
         <StatsRow>
           <Stat>
-            <StatNum $delay="0.7s">12.400+</StatNum>
-            <StatLabel>Sammler</StatLabel>
+            <StatNum>48K</StatNum>
+            <StatLabel>Aktive Sammler</StatLabel>
           </Stat>
           <Stat>
-            <StatNum $delay="0.8s">98.7%</StatNum>
-            <StatLabel>Erfolgsrate</StatLabel>
+            <StatNum>312K</StatNum>
+            <StatLabel>Erfolgreiche Tausche</StatLabel>
           </Stat>
           <Stat>
-            <StatNum $delay="0.9s">4,8 ★</StatNum>
-            <StatLabel>Bewertung</StatLabel>
+            <StatNum>96%</StatNum>
+            <StatLabel>Zufriedenheit</StatLabel>
+          </Stat>
+          <Stat>
+            <StatNum>18</StatNum>
+            <StatLabel>Aktive Alben</StatLabel>
           </Stat>
         </StatsRow>
       </HeroSection>
 
-      {/* ─── HOW IT WORKS ─── */}
-      <Section>
-        <SectionHeader>
-          <SectionTitle>So einfach geht's.</SectionTitle>
-          <SectionSub>Drei Schritte zum vollständigen Album.</SectionSub>
-        </SectionHeader>
+      {/* ─── FEATURES ─── */}
+      <SectionWrap>
+        <SectionTitle>Warum StickerSwap?</SectionTitle>
+        <SectionSub>Weil Facebook-Gruppen 2006 waren.</SectionSub>
+        <FeaturesGrid>
+          {[
+            { icon: '🔐', title: '100% Verifizierte User', desc: 'Keine anonymen Profile. Jeder Nutzer wird per E-Mail verifiziert — inkl. Reputationssystem und Tauschhistorie.' },
+            { icon: '🎯', title: 'Intelligentes Matching', desc: 'Unser Algorithmus findet automatisch Tauschpartner, die genau das haben, was du brauchst — und brauchen, was du hast.' },
+            { icon: '📱', title: 'Scannen via App', desc: 'Sticker einfach per Kamera einscannen oder Nummer eingeben. Dein Album wird automatisch aktualisiert.' },
+            { icon: '🌍', title: 'Mehrsprachig', desc: 'Deutsch, Englisch, Französisch, Spanisch, Portugiesisch, Italienisch — tausche mit Sammlern aus ganz Europa.' },
+            { icon: '🛡️', title: 'Betrugschutz', desc: 'Rating-System, Tauschsperren bei Beschwerden, anonymisierte Adressvergabe und optionaler Tracking-Code-Pflicht.' },
+            { icon: '⚡', title: 'Live-Marktplatz', desc: 'Tauschangebote in Echtzeit — filtere nach Region, Versandkosten, Albumtyp und Tauschpartner-Bewertung.' },
+          ].map(f => (
+            <FeatureCard key={f.title}>
+              <FeatureIcon>{f.icon}</FeatureIcon>
+              <h3 style={{ fontFamily: 'var(--font-body)', fontSize: '17px', fontWeight: 600, marginBottom: 8 }}>{f.title}</h3>
+              <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6 }}>{f.desc}</p>
+            </FeatureCard>
+          ))}
+        </FeaturesGrid>
+      </SectionWrap>
 
-        <StepsGrid>
-          <StepCard
-            $accent="rgba(74,222,174,0.4)"
-            $gradient="linear-gradient(135deg, rgba(74,222,174,0.04) 0%, transparent 70%)"
-          >
-            <StepNum $color="var(--accent3)">01</StepNum>
-            <StepIconWrap $bg="rgba(74,222,174,0.1)" $border="rgba(74,222,174,0.2)">
-              📖
-            </StepIconWrap>
-            <StepTitle>Album scannen</StepTitle>
-            <StepDesc>
-              Trag deine vorhandenen und fehlenden Sticker ein — einmalig per Tabellen-Import oder Kachel für Kachel. Wir merken uns alles.
-            </StepDesc>
-          </StepCard>
-
-          <StepCard
-            $accent="rgba(124,111,205,0.4)"
-            $gradient="linear-gradient(135deg, rgba(124,111,205,0.04) 0%, transparent 70%)"
-          >
-            <StepNum $color="var(--accent4)">02</StepNum>
-            <StepIconWrap $bg="rgba(124,111,205,0.1)" $border="rgba(124,111,205,0.2)">
-              🎯
-            </StepIconWrap>
-            <StepTitle>Matches finden</StepTitle>
-            <StepDesc>
-              Unser Smart-Matching-Algorithmus findet Sammler in deiner Region, die genau das haben, was du brauchst — und umgekehrt.
-            </StepDesc>
-          </StepCard>
-
-          <StepCard
-            $accent="rgba(245,200,66,0.4)"
-            $gradient="linear-gradient(135deg, rgba(245,200,66,0.04) 0%, transparent 70%)"
-          >
-            <StepNum $color="var(--accent)">03</StepNum>
-            <StepIconWrap $bg="rgba(245,200,66,0.1)" $border="rgba(245,200,66,0.2)">
-              🤝
-            </StepIconWrap>
-            <StepTitle>Sicher tauschen</StepTitle>
-            <StepDesc>
-              Token-Sicherung, Tracking-Upload und Reputationssystem sorgen dafür, dass jeder Tausch fair und nachvollziehbar abläuft.
-            </StepDesc>
-          </StepCard>
-        </StepsGrid>
-      </Section>
-
-      {/* ─── SOCIAL PROOF ─── */}
-      <ProofSection ref={proofRef}>
-        <ProofInner>
-          <ProofBadge>
-            <LiveDot />
-            Live-Statistik für Deutschland
-          </ProofBadge>
-
-          <CounterDisplay>
-            {counterStarted ? swapCount.toLocaleString('de-DE') : '0'}
-          </CounterDisplay>
-
-          <CounterLabel>
-            erfolgreiche Tausche in Deutschland.<br />
-            Jeden Tag werden es <strong>mehr</strong>.
-          </CounterLabel>
-
-          <ProofGrid>
-            <ProofCard>
-              <ProofCardTop>
-                <Avatar $bg="rgba(74,222,174,0.12)">🧒</Avatar>
+      {/* ─── TRUST ─── */}
+      <SectionWrap style={{ paddingTop: 0 }}>
+        <TrustSectionWrap>
+          <SectionTitle style={{ fontSize: 42 }}>Sicherheit zuerst</SectionTitle>
+          <p style={{ color: 'var(--muted)', fontSize: 14 }}>Wir schützen unsere Community aktiv vor Betrug.</p>
+          <TrustGrid>
+            {[
+              { icon: '🔒', title: 'Adress-Anonymisierung', desc: 'Echte Adressen bleiben verborgen bis zur Tauschbestätigung von beiden Seiten.' },
+              { icon: '⭐', title: 'Reputationssystem', desc: 'Jeder Tausch gibt Punkte. Schlechte Bewertungen wirken sofort auf Sichtbarkeit und Limits.' },
+              { icon: '🚨', title: 'Meldesystem', desc: 'Betrug oder No-Show melden — wir prüfen innerhalb 24h und sperren bei Missbrauch.' },
+              { icon: '📦', title: 'Tracking-Code (Pro)', desc: 'Premium-User können Tracking-Pflicht aktivieren — so weiß jeder wo sein Paket ist.' },
+              { icon: '🤝', title: 'Gegenseitige Bestätigung', desc: 'Tausch gilt erst als abgeschlossen, wenn beide Seiten Erhalt bestätigt haben.' },
+              { icon: '🏷️', title: 'Verifiziertes Profil-Badge', desc: 'Tausche bevorzugt mit verifizierten Nutzern — erkennbar am grünen Häkchen.' },
+            ].map(t => (
+              <TrustItem key={t.title}>
+                <div style={{ fontSize: 24, flexShrink: 0 }}>{t.icon}</div>
                 <div>
-                  <AvatarName>Tim, 12</AvatarName>
-                  <AvatarSub>Hamburg · WM 2026</AvatarSub>
+                  <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>{t.title}</h4>
+                  <p style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>{t.desc}</p>
                 </div>
-              </ProofCardTop>
-              <ProofCardText>
-                "In 3 Tagen hatte ich endlich alle fehlenden Sticker! Das war früher unmöglich."
-              </ProofCardText>
-            </ProofCard>
+              </TrustItem>
+            ))}
+          </TrustGrid>
+        </TrustSectionWrap>
+      </SectionWrap>
 
-            <ProofCard>
-              <ProofCardTop>
-                <Avatar $bg="rgba(124,111,205,0.12)">👨</Avatar>
-                <div>
-                  <AvatarName>Marco, 34</AvatarName>
-                  <AvatarSub>München · Bundesliga</AvatarSub>
-                </div>
-              </ProofCardTop>
-              <ProofCardText>
-                "Meine Doppelten lagen jahrelang rum. Jetzt tausche ich sie gegen genau das, was mir fehlt."
-              </ProofCardText>
-            </ProofCard>
+      {/* ─── PRICING ─── */}
+      <MonoSection>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <SectionTitle>Pläne &amp; Preise</SectionTitle>
+          <SectionSub>Sammeln ist kostenlos — wer mehr will, zahlt fair.</SectionSub>
 
-            <ProofCard>
-              <ProofCardTop>
-                <Avatar $bg="rgba(245,200,66,0.12)">👩</Avatar>
-                <div>
-                  <AvatarName>Jana, 28</AvatarName>
-                  <AvatarSub>Berlin · Champions League</AvatarSub>
-                </div>
-              </ProofCardTop>
-              <ProofCardText>
-                "Das Matching ist genial. Ich musste nichts suchen — die richtigen Tauschpartner kamen zu mir."
-              </ProofCardText>
-            </ProofCard>
-          </ProofGrid>
-        </ProofInner>
-      </ProofSection>
+          <PricingGrid>
+            {/* FREE */}
+            <PricingCard>
+              <PricingName>Free</PricingName>
+              <Price>0€ <span>/ Monat</span></Price>
+              <PricingDesc>Für Gelegenheitssammler. Alle Grundfunktionen inklusive.</PricingDesc>
+              <PricingList>
+                <li>1 aktives Album</li>
+                <li>10 Tausche / Monat</li>
+                <li>Basis-Matching</li>
+                <li>Öffentliches Profil</li>
+                <li className="disabled">Priorität im Matching</li>
+                <li className="disabled">Smart-Pakete</li>
+              </PricingList>
+              <button className="btn btn-secondary" style={{ width: '100%' }} onClick={goRegister}>
+                Kostenlos starten
+              </button>
+            </PricingCard>
+
+            {/* PRO — featured */}
+            <PricingCard className="featured">
+              <PricingName>Pro</PricingName>
+              <Price>2,99€ <span>/ Monat</span></Price>
+              <PricingDesc>Für echte Sammler. Schneller fertig werden mit cleveren Features.</PricingDesc>
+              <PricingList>
+                <li>Unbegrenzte Alben</li>
+                <li>Unbegrenzte Tausche</li>
+                <li>Priorität im Matching</li>
+                <li>Smart-Pakete (5er, 10er)</li>
+                <li>Tracking-Code Pflicht</li>
+                <li>Ad-free Erlebnis</li>
+              </PricingList>
+              <button className="btn btn-primary" style={{ width: '100%' }} onClick={goRegister}>
+                Pro testen
+              </button>
+            </PricingCard>
+
+            {/* HÄNDLER */}
+            <PricingCard>
+              <PricingName>Händler</PricingName>
+              <Price>9,99€ <span>/ Monat</span></Price>
+              <PricingDesc>Für Shops, die Doppelkarten kaufen oder verkaufen wollen.</PricingDesc>
+              <PricingList>
+                <li>Verkaufsfunktion (Fixpreis)</li>
+                <li>Shopseite mit eigenem Profil</li>
+                <li>Bulk-Import via CSV</li>
+                <li>Analytics &amp; Umsatzbericht</li>
+                <li>Verifiziertes Händler-Badge</li>
+                <li>5% Provision pro Verkauf</li>
+              </PricingList>
+              <button className="btn btn-secondary" style={{ width: '100%' }} onClick={goRegister}>
+                Als Händler starten
+              </button>
+            </PricingCard>
+          </PricingGrid>
+
+          {/* Revenue streams */}
+          <div>
+            <SectionTitle style={{ fontSize: 36 }}>Einnahmemodelle</SectionTitle>
+            <RevenueGrid>
+              {[
+                { icon: '💳', title: 'Subscriptions', desc: 'Free → Pro → Händler. Wiederkehrende Einnahmen, skalierbarer Revenue.' },
+                { icon: '🏪', title: '5% Marktplatz-Fee', desc: 'Auf jeden Sticker-Verkauf (kein Tausch) nehmen wir 5% Provision.' },
+                { icon: '🎯', title: 'Panini-Partnerschaft', desc: 'Affiliate-Links auf offizielle Startersets, Blindpacks, Sammelalben.' },
+                { icon: '📊', title: 'Community-Daten (anonym)', desc: 'Aggregierte Fehlkarten-Insights an Verlage / Retailer lizenzieren.' },
+              ].map(r => (
+                <RevenueCard key={r.title}>
+                  <div style={{ fontSize: 36, flexShrink: 0 }}>{r.icon}</div>
+                  <div>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 24, color: 'var(--accent)', marginBottom: 4 }}>{r.title}</h3>
+                    <p style={{ fontSize: 13, color: 'var(--muted)' }}>{r.desc}</p>
+                  </div>
+                </RevenueCard>
+              ))}
+            </RevenueGrid>
+          </div>
+        </div>
+      </MonoSection>
+
+      {/* ─── CONCEPT / TECH ─── */}
+      <ConceptSection>
+        <SectionTitle>Konzept &amp; Technologie</SectionTitle>
+        <SectionSub>Was dahinter steckt — und wohin es geht.</SectionSub>
+        <ConceptRow>
+          <ConceptCard>
+            <h3>🏗️ Tech-Stack</h3>
+            <ul>
+              <li>React / CRA Frontend (Vercel)</li>
+              <li>Supabase Backend (Auth, DB, Edge Functions)</li>
+              <li>Stripe für Subscriptions &amp; Payments</li>
+              <li>Brevo SMTP für E-Mails &amp; Notifications</li>
+              <li>i18next für Mehrsprachigkeit (15 Sprachen)</li>
+              <li>Claude API für Smart-Matching &amp; Fraud-Detection</li>
+              <li>Cloudinary für Profilbilder &amp; Sticker-Scans</li>
+            </ul>
+          </ConceptCard>
+          <ConceptCard>
+            <h3>📅 Roadmap</h3>
+            <ul>
+              <li><strong>Phase 1:</strong> MVP — Tauschbörse, Profil, Matching</li>
+              <li><strong>Phase 2:</strong> Mobile App (React Native), Barcode-Scan</li>
+              <li><strong>Phase 3:</strong> Händler-Modul, Verkaufsfunktion</li>
+              <li><strong>Phase 4:</strong> Gamification (Achievements, Ranglisten)</li>
+              <li><strong>Phase 5:</strong> AI-Wertschätzung seltener Sticker</li>
+              <li><strong>Phase 6:</strong> Erweiterung auf Pokémon etc.</li>
+            </ul>
+          </ConceptCard>
+          <ConceptCard>
+            <h3>🎯 Zielgruppe</h3>
+            <ul>
+              <li>6–16 Mio. aktive Panini-Sammler in D-A-CH</li>
+              <li>WM/EM: Spikes mit 5–10x Nutzerwachstum</li>
+              <li>Kinder (mit Eltern-Account), Jugendliche, Erwachsene</li>
+              <li>Gelegentliche Sammler UND Hardcore-Komplettisten</li>
+              <li>Klubs, Schulen, Vereine als Gruppenkonten</li>
+            </ul>
+          </ConceptCard>
+          <ConceptCard>
+            <h3>🔑 Alleinstellungsmerkmale</h3>
+            <ul>
+              <li>Intelligentes Matching statt manueller Suche</li>
+              <li>Vollständiger Betrugschutz (Adress-Proxy, Rating)</li>
+              <li>1.000+ Sticker pro Album sauber strukturiert</li>
+              <li>Mehrsprachig von Anfang an (15 Sprachen)</li>
+              <li>Keine anonymen User — nur Community</li>
+              <li>Design-Qualität wie eine Tech-Startup-App</li>
+            </ul>
+          </ConceptCard>
+        </ConceptRow>
+      </ConceptSection>
 
       {/* ─── FINAL CTA ─── */}
       <CtaSection>
-        <CtaTitle>
-          <span>Dein Album</span><br />
-          <span className="gold">wartet auf dich.</span>
-        </CtaTitle>
-        <CtaSub>Kostenlos registrieren. Sofort loslegen.</CtaSub>
-        <BtnCtaLarge onClick={goToLogin}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(52px, 9vw, 100px)', marginBottom: 16, position: 'relative', zIndex: 1 }}>
+          DEIN ALBUM.<br />
+          <span style={{ color: 'var(--accent)' }}>WARTET AUF DICH.</span>
+        </h2>
+        <p style={{ color: 'var(--muted)', fontSize: 17, marginBottom: 36, position: 'relative', zIndex: 1 }}>
+          Kostenlos registrieren. Sofort loslegen.
+        </p>
+        <BtnCta onClick={goRegister} style={{ position: 'relative', zIndex: 1, fontSize: 17, padding: '16px 44px' }}>
           🚀 Jetzt kostenlos starten
-        </BtnCtaLarge>
-        <CtaNote>Kein Abo. Keine Kreditkarte. Für immer kostenlos nutzbar.</CtaNote>
+        </BtnCta>
+        <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 14, position: 'relative', zIndex: 1 }}>
+          Kein Abo. Keine Kreditkarte. Für immer kostenlos nutzbar.
+        </p>
       </CtaSection>
 
       {/* ─── FOOTER ─── */}
       <Footer>
-        <FooterLogo>STICKER<span>SWAP</span><em>.</em></FooterLogo>
-        <FooterLinks>
-          <a href="/impressum">Impressum</a>
-          <a href="/datenschutz">Datenschutz</a>
-          <a href="/agb">AGB</a>
-          <a href="mailto:hallo@stickerswap.de">Kontakt</a>
-        </FooterLinks>
+        © 2026 StickerSwap · DSGVO-konform · Hamburg
+        {' · '}
+        <a href="/impressum" style={{ color: 'var(--muted)' }}>Impressum</a>
+        {' · '}
+        <a href="/datenschutz" style={{ color: 'var(--muted)' }}>Datenschutz</a>
+        {' · '}
+        <a href="/agb" style={{ color: 'var(--muted)' }}>AGB</a>
       </Footer>
-    </Page>
+    </div>
   );
 }
