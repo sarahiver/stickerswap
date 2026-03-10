@@ -1,20 +1,14 @@
-// src/App.js
-// Kapitel 8 — Haupt-App: Router, Auth, PrivateRoutes, Notifications
-
-import React, { Suspense, lazy, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { I18nextProvider } from 'react-i18next';
-import i18n from './i18n/i18n';
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import GlobalStyles from './lib/GlobalStyles';
-import { ToastProvider } from './hooks/useToast';
-import useAuth from './hooks/useAuth';
-import useNotifications from './hooks/useNotifications';
-import usePWA from './hooks/usePWA';
-import AppShell from './components/AppShell';
-import InstallBanner from './components/InstallBanner';
-import { SuspenseWrapper } from './components/StickerSkeleton';
+import { useAuth } from './hooks/useAuth';
 
-// Lazy-loaded pages
+// Public
+import LandingPage from './pages/LandingPage';
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+
+// Private (lazy)
+const AppShell        = lazy(() => import('./components/AppShell'));
 const DashboardPage   = lazy(() => import('./pages/DashboardPage'));
 const AlbumLibrary    = lazy(() => import('./pages/AlbumLibrary'));
 const AlbumPage       = lazy(() => import('./pages/AlbumPage'));
@@ -22,140 +16,114 @@ const MatchPage       = lazy(() => import('./pages/MatchPage'));
 const SwapDetailView  = lazy(() => import('./components/SwapDetailView'));
 const WalletPage      = lazy(() => import('./pages/WalletPage'));
 const SettingsPage    = lazy(() => import('./pages/SettingsPage'));
-const LoginPage       = lazy(() => import('./pages/LoginPage'));
 
-// ─── Private Route ────────────────────────────────────────────────────────────
-const PrivateRoute = ({ user, loading, children }) => {
-  if (loading) return null;
-  return user ? children : <Navigate to="/login" replace />;
-};
+/* ─── Route Guards ─────────────────────── */
+function PublicRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <FullPageLoader />;
+  // Already logged in → go to dashboard
+  if (user) return <Navigate to="/dashboard" replace />;
+  return children;
+}
 
-// ─── Inner App (braucht Router-Context) ──────────────────────────────────────
-const InnerApp = () => {
-  const { user, profile, loading, signOut, reloadProfile } = useAuth();
-  const { swUpdateAvailable, applyUpdate } = usePWA();
-  const [unreadCount, setUnreadCount] = useState(0);
-  const location = useLocation();
+function PrivateRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <FullPageLoader />;
+  if (!user) return <Navigate to="/" replace />;
+  return children;
+}
 
-  // Aktiver Swap für Notification-Deduplication
-  const activeSwapId = location.pathname.startsWith('/swap/')
-    ? location.pathname.split('/swap/')[1]
-    : null;
-
-  // Globale Realtime-Benachrichtigungen
-  useNotifications({
-    userId: user?.id,
-    activeSwapId,
-    onSwapUpdate: () => {},
-    onNewMessage: () => setUnreadCount(c => c + 1),
-  });
-
-  // SW Update Banner
-  if (swUpdateAvailable) {
-    return (
-      <div style={{ position:'fixed',inset:0,background:'#0f0f1a',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:24,zIndex:9999 }}>
-        <p style={{ color:'#fff',fontSize:16,fontWeight:700,textAlign:'center' }}>
-          🚀 Update verfügbar!
-        </p>
-        <button
-          onClick={applyUpdate}
-          style={{ background:'#7c6fcd',color:'#fff',border:'none',borderRadius:12,padding:'13px 28px',fontSize:15,fontWeight:800,cursor:'pointer' }}
-        >
-          Jetzt aktualisieren
-        </button>
-      </div>
-    );
-  }
-
-  const lang = profile?.language ?? i18n.language?.slice(0,2) ?? 'de';
-
-  const privateProps = { user, profile };
-
+function FullPageLoader() {
   return (
-    <>
-      <Routes>
-        {/* Public */}
-        <Route
-          path="/login"
-          element={
-            user && !loading
-              ? <Navigate to="/" replace />
-              : <SuspenseWrapper><LoginPage /></SuspenseWrapper>
-          }
-        />
-
-        {/* Private: AppShell mit Tab-Bar */}
-        <Route
-          element={
-            <PrivateRoute user={user} loading={loading}>
-              <AppShell unreadCount={unreadCount} />
-            </PrivateRoute>
-          }
-        >
-          <Route index element={
-            <SuspenseWrapper>
-              <DashboardPage {...privateProps} />
-            </SuspenseWrapper>
-          } />
-          <Route path="albums" element={
-            <SuspenseWrapper>
-              <AlbumLibrary userId={user?.id} language={lang} />
-            </SuspenseWrapper>
-          } />
-          <Route path="album/:id" element={
-            <SuspenseWrapper>
-              <AlbumPage userId={user?.id} />
-            </SuspenseWrapper>
-          } />
-          <Route path="matches" element={
-            <SuspenseWrapper>
-              <MatchPage albums={[]} currentUser={user} />
-            </SuspenseWrapper>
-          } />
-          <Route path="swap/:id" element={
-            <SuspenseWrapper>
-              <SwapDetailView
-                swapId={location.pathname.split('/swap/')[1]}
-                currentUserId={user?.id}
-                onBack={() => window.history.back()}
-              />
-            </SuspenseWrapper>
-          } />
-          <Route path="wallet" element={
-            <SuspenseWrapper>
-              <WalletPage currentUser={user} language={lang} />
-            </SuspenseWrapper>
-          } />
-          <Route path="settings" element={
-            <SuspenseWrapper>
-              <SettingsPage
-                {...privateProps}
-                onSignOut={signOut}
-                onProfileUpdated={reloadProfile}
-              />
-            </SuspenseWrapper>
-          } />
-        </Route>
-
-        {/* 404 → Home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-
-      <InstallBanner />
-    </>
+    <div style={{
+      minHeight: '100vh',
+      background: 'var(--bg)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'column',
+      gap: '16px',
+    }}>
+      <div style={{
+        fontFamily: 'var(--font-display)',
+        fontSize: '32px',
+        letterSpacing: '0.06em',
+        color: 'var(--accent)',
+      }}>
+        STICKER<span style={{ color: 'var(--accent2)' }}>SWAP</span>
+      </div>
+      <div style={{
+        width: '40px',
+        height: '3px',
+        borderRadius: '2px',
+        background: 'var(--surface3)',
+        overflow: 'hidden',
+        position: 'relative',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'var(--accent)',
+          animation: 'shimmer 1s linear infinite',
+          backgroundSize: '200% 100%',
+          backgroundImage: 'linear-gradient(90deg, transparent 25%, var(--accent) 50%, transparent 75%)',
+        }} />
+      </div>
+    </div>
   );
-};
+}
 
-// ─── Root App ─────────────────────────────────────────────────────────────────
-const App = () => (
-  <I18nextProvider i18n={i18n}>
-    <ToastProvider>
+/* ─── App ─────────────────────────────── */
+export default function App() {
+  return (
+    <BrowserRouter>
       <GlobalStyles />
-      <BrowserRouter>
-        <InnerApp />
-      </BrowserRouter>
-    </ToastProvider>
-  </I18nextProvider>
-);
 
-export default App;
+      <Suspense fallback={<FullPageLoader />}>
+        <Routes>
+
+          {/* ── PUBLIC ── */}
+          <Route
+            path="/"
+            element={
+              <PublicRoute>
+                <LandingPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+
+          {/* ── PRIVATE (all inside AppShell) ── */}
+          <Route
+            path="/*"
+            element={
+              <PrivateRoute>
+                <AppShell>
+                  <Routes>
+                    <Route path="/dashboard"  element={<DashboardPage />} />
+                    <Route path="/albums"     element={<AlbumLibrary />} />
+                    <Route path="/album/:id"  element={<AlbumPage />} />
+                    <Route path="/matches"    element={<MatchPage />} />
+                    <Route path="/swap/:id"   element={<SwapDetailView />} />
+                    <Route path="/wallet"     element={<WalletPage />} />
+                    <Route path="/settings"   element={<SettingsPage />} />
+                    {/* Catch-all for authenticated users */}
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </AppShell>
+              </PrivateRoute>
+            }
+          />
+
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
