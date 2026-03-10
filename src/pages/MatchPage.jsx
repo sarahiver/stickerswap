@@ -22,13 +22,34 @@ import { paddingStart, marginStart } from '../theme/rtl'
 // Das Frontend übergibt nur album_id — keine country_code im Request.
 // ============================================================
 
-const Page = styled.div`
+// ============================================================
+// MatchPage — Semantik-Refactor Kapitel 3
+//
+// Page:        <section> (innerhalb von <main> in App.js)
+// Header:      <header> (innerhalb der section)
+// Title:       <h2>     ✓ war schon h2
+// FilterRow:   <div>    (Werkzeug-Leiste, kein Landmark-Wert)
+//              + role="toolbar" aria-label="Filter"
+// MatchCard:   <article> (eigenständiger Tausch-Partner-Block)
+// MatchHeader: <header>  (innerhalb des article)
+// Avatar:      <figure>  (visuelle User-Repräsentation)
+// Username:    <h3>      (Überschrift des article)
+// MetaRow:     <p>       (Metadaten-Absatz)
+// ExchangeRow: <section> aria-label="Tausch-Details"
+// EmptyState:  <p>       (einfache Nachricht)
+// MatchList:   <ul>      (Liste der Match-Artikel)
+// MatchItem:   <li>      (Listenelement)
+// ============================================================
+
+// <section> für die gesamte Seite (innerhalb <main>)
+const PageSection = styled.section`
   padding: ${({ theme }) => theme.spacing.md};
   padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   overflow-x: hidden;
 `
 
-const Header = styled.div`
+// <header> innerhalb der <section> — nicht der globale <header>
+const SectionHeader = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -37,13 +58,19 @@ const Header = styled.div`
   gap: 8px;
 `
 
+// H2 war schon korrekt — nur Margin reset
 const Title = styled.h2`
   font-family: ${({ theme }) => theme.fonts.display};
   font-size: 28px;
   letter-spacing: 0.04em;
+  margin: 0;
 `
 
-const FilterRow = styled.div`
+// role="toolbar": Gruppe von Steuerelementen (Filter-Tags)
+const FilterToolbar = styled.div.attrs({
+  role: 'toolbar',
+  'aria-label': 'Filter',
+})`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -51,19 +78,32 @@ const FilterRow = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.md};
 `
 
-const MatchCard = styled(Card)`
+// <ul> für Match-Liste
+const MatchList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+`
+const MatchItem = styled.li`
   margin-bottom: 10px;
+`
+
+// <article> für jeden Match (eigenständiger Inhaltsblock)
+const MatchArticle = styled(Card).attrs({ as: 'article' })`
   padding: 14px;
 `
 
-const MatchHeader = styled.div`
+// <header> des article
+const MatchArticleHeader = styled.header`
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
 `
 
-const Avatar = styled.div`
+// <figure> für User-Avatar
+const AvatarFigure = styled.figure`
+  margin: 0;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -78,33 +118,41 @@ const Avatar = styled.div`
   font-size: 18px;
   color: ${({ theme }) => theme.colors.bg};
   flex-shrink: 0;
+  aria-hidden: true;
 `
 
-const MatchMeta = styled.div`
+// Wrapper für User-Info neben Avatar
+const MatchUserInfo = styled.div`
   flex: 1;
   min-width: 0;
 `
 
-const Username = styled.div`
+// <h3>: Artikel-Überschrift (Benutzername des Match-Partners)
+const MatchUsername = styled.h3`
   font-weight: 600;
   font-size: 14px;
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 `
 
-const MetaRow = styled.div`
+// <p> für Metadaten-Zeile
+const MatchMetaP = styled.p`
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 11px;
   color: ${({ theme }) => theme.colors.muted};
-  margin-top: 2px;
+  margin: 2px 0 0;
   flex-wrap: wrap;
 `
 
-// Icon-First Sticker-Richtungs-Anzeige
-const ExchangeRow = styled.div`
+// <section> für Tausch-Details (Icon-First Anzeige)
+const ExchangeSection = styled.section`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -128,7 +176,7 @@ const StickerPill = styled.span`
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: ${({ $type, theme }) =>
+  background: ${({ $type }) =>
     $type === 'give' ? 'rgba(74,222,174,0.12)' : 'rgba(245,200,66,0.12)'};
   color: ${({ $type, theme }) =>
     $type === 'give' ? theme.colors.accent3 : theme.colors.accent};
@@ -146,22 +194,18 @@ const LocalBadge = styled.span`
   color: ${({ theme }) => theme.colors.accent3};
 `
 
-const ScoreBadge = styled.span`
+const ScoreBadge = styled.output`
   font-family: ${({ theme }) => theme.fonts.mono};
   font-size: 12px;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.accent};
 `
 
-const EmptyState = styled.div`
+// <p> für Empty-State — kein extra div
+const EmptyStateP = styled.p`
   text-align: center;
   padding: 48px 16px;
   color: ${({ theme }) => theme.colors.muted};
-`
-
-const EmptyIcon = styled.div`
-  font-size: 48px;
-  margin-bottom: 12px;
 `
 
 // ── Demo Data (wird später durch echte API ersetzt) ───────────
@@ -237,133 +281,144 @@ const MatchPage = () => {
     <>
       {toast && <Toast message={toast.message} type={toast.type} />}
 
-      <Page>
-        {/* Header */}
-        <Header>
+      {/* <section> statt <div>: Eigenständiger Seitenbereich */}
+      <PageSection aria-labelledby="matches-heading">
+
+        {/* <header> innerhalb der section */}
+        <SectionHeader>
           <div>
-            <Title>🎯 Matches</Title>
-            <div style={{ fontSize: 12, color: '#6b6b8a', marginTop: 2 }}>
+            <Title id="matches-heading">🎯 Matches</Title>
+            {/* <p> statt div für kurze Beschreibung */}
+            <p style={{ fontSize: 12, color: '#6b6b8a', margin: '2px 0 0' }}>
               {localCount} lokal · {matchCount - localCount} international
-            </div>
+            </p>
           </div>
           <RegionSwitcher />
-        </Header>
+        </SectionHeader>
 
-        {/* Filter Row — Icon-First */}
-        <FilterRow>
+        {/* role="toolbar" — Filter-Steuerelemente */}
+        <FilterToolbar>
           <Tag $color={!searchInternational ? 'green' : undefined}>
             📍 {t('region.localOnly')}
           </Tag>
           {searchInternational && (
-            <Tag $color="green">
-              🌍 {t('region.worldwide')}
-            </Tag>
+            <Tag $color="green">🌍 {t('region.worldwide')}</Tag>
           )}
-          <Tag>
-            🎯 {matchCount} {matchCount === 1 ? 'Match' : 'Matches'}
-          </Tag>
-        </FilterRow>
+          <Tag>🎯 {matchCount} {matchCount === 1 ? 'Match' : 'Matches'}</Tag>
+        </FilterToolbar>
 
-        {/* Security Notice — Icon-First */}
-        <Card style={{ marginBottom: 12, padding: '10px 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#6b6b8a' }}>
-            <span style={{ fontSize: 16 }}>🔐</span>
-            <span>
-              {searchInternational
-                ? 'Globaler Modus — Matches weltweit'
-                : 'Lokaler Modus — nur ' + (DEMO_MATCHES[0]?.match_country_code || 'DE')}
-            </span>
-          </div>
+        {/* <aside>: ergänzende Info (Security-Hinweis) */}
+        <Card as="aside" style={{ marginBottom: 12, padding: '10px 12px' }}
+              aria-label="Suchmodus-Hinweis">
+          <p style={{ display: 'flex', alignItems: 'center', gap: 8,
+                      fontSize: 12, color: '#6b6b8a', margin: 0 }}>
+            <span aria-hidden="true" style={{ fontSize: 16 }}>🔐</span>
+            {searchInternational
+              ? 'Globaler Modus — Matches weltweit'
+              : 'Lokaler Modus — nur ' + (DEMO_MATCHES[0]?.match_country_code || 'DE')}
+          </p>
         </Card>
 
-        {/* Match Cards */}
+        {/* Match-Karten: <ul> mit <li><article> */}
         {DEMO_MATCHES.length === 0 ? (
-          <EmptyState>
-            <EmptyIcon>🔍</EmptyIcon>
-            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: '0.04em' }}>
+          // <p> für leere Liste — kein extra div
+          <EmptyStateP role="status" aria-live="polite">
+            <span aria-hidden="true" style={{ display: 'block', fontSize: 48, marginBottom: 12 }}>🔍</span>
+            <strong style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24,
+                             letterSpacing: '0.04em', display: 'block' }}>
               Keine Matches
-            </div>
-            <div style={{ fontSize: 13, marginTop: 8 }}>
+            </strong>
+            <span style={{ fontSize: 13, marginTop: 8, display: 'block' }}>
               {searchInternational
                 ? 'Weltweit keine Matches — lade mehr Sticker hoch'
                 : 'Aktiviere "Weltweit" für mehr Ergebnisse'}
-            </div>
-          </EmptyState>
+            </span>
+          </EmptyStateP>
         ) : (
-          DEMO_MATCHES.map((match) => (
-            <MatchCard
-              key={match.match_user_id}
-              $borderColor={match.is_local ? 'rgba(74,222,174,0.2)' : undefined}
-            >
-              <MatchHeader>
-                <Avatar>
-                  {match.match_username[0].toUpperCase()}
-                </Avatar>
+          <MatchList aria-label="Tausch-Partner">
+            {DEMO_MATCHES.map((match) => (
+              <MatchItem key={match.match_user_id}>
+                {/* <article>: eigenständiger Match-Block */}
+                <MatchArticle
+                  $borderColor={match.is_local ? 'rgba(74,222,174,0.2)' : undefined}
+                  aria-label={`Match mit ${match.match_username}`}
+                >
+                  {/* <header> des article */}
+                  <MatchArticleHeader>
+                    {/* <figure> für Avatar — aria-hidden weil Username vorhanden */}
+                    <AvatarFigure aria-hidden="true">
+                      {match.match_username[0].toUpperCase()}
+                    </AvatarFigure>
 
-                <MatchMeta>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Username>{match.match_username}</Username>
-                    {match.match_is_verified && (
-                      <span title="Verifiziert" style={{ fontSize: 14 }}>✅</span>
-                    )}
-                    {match.match_plan === 'pro' && (
-                      <span title="Pro" style={{ fontSize: 14 }}>⭐</span>
-                    )}
-                  </div>
-                  <MetaRow>
-                    <FlagIcon code={match.match_country_code} size={14} />
-                    <span>{match.match_country_code}</span>
-                    <span>·</span>
-                    <span>⭐ {match.match_reputation}</span>
-                    <span>·</span>
-                    <span>🔄 {match.match_swap_count}</span>
-                  </MetaRow>
-                </MatchMeta>
+                    <MatchUserInfo>
+                      {/* <h3>: Artikel-Überschrift */}
+                      <MatchUsername>
+                        {match.match_username}
+                        {match.match_is_verified && (
+                          <span title="Verifiziert" aria-label="verifiziert" style={{ fontSize: 14 }}>✅</span>
+                        )}
+                        {match.match_plan === 'pro' && (
+                          <span title="Pro-Mitglied" aria-label="Pro" style={{ fontSize: 14 }}>⭐</span>
+                        )}
+                      </MatchUsername>
+                      {/* <p> für Metadaten */}
+                      <MatchMetaP>
+                        <FlagIcon code={match.match_country_code} size={14} />
+                        <span>{match.match_country_code}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>⭐ {match.match_reputation}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>🔄 {match.match_swap_count}</span>
+                      </MatchMetaP>
+                    </MatchUserInfo>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                  <ScoreBadge>{match.match_score} pts</ScoreBadge>
-                  {match.is_local
-                    ? <LocalBadge>📍 lokal</LocalBadge>
-                    : <span style={{ fontSize: 10, color: '#6b6b8a' }}>🌍 intl.</span>
-                  }
-                </div>
-              </MatchHeader>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                      {/* <output>: berechneter Score-Wert */}
+                      <ScoreBadge aria-label={`${match.match_score} Punkte Match-Score`}>
+                        {match.match_score} pts
+                      </ScoreBadge>
+                      {match.is_local
+                        ? <LocalBadge aria-label="Lokaler Match">📍 lokal</LocalBadge>
+                        : <span style={{ fontSize: 10, color: '#6b6b8a' }} aria-label="Internationaler Match">🌍 intl.</span>
+                      }
+                    </div>
+                  </MatchArticleHeader>
 
-              {/* Exchange — Icon-First Anzeige */}
-              <ExchangeRow>
-                <ExchangeSide>
-                  {/* Was ich gebe */}
-                  <span style={{ fontSize: 16 }}>↑</span>
-                  <StatusDot status="double" />
-                  <span style={{ fontSize: 12, color: '#6b6b8a', marginInlineEnd: 2 }}>gebe:</span>
-                  {Array.from({ length: match.i_have_they_need }, (_, i) => (
-                    <StickerPill key={i} $type="give">#{10 + i}</StickerPill>
-                  ))}
-                </ExchangeSide>
-                <span style={{ color: '#2a2a3a', fontSize: 18 }}>⇄</span>
-                <ExchangeSide>
-                  {/* Was ich bekomme */}
-                  <span style={{ fontSize: 16 }}>↓</span>
-                  <StatusDot status="need" />
-                  <span style={{ fontSize: 12, color: '#6b6b8a', marginInlineEnd: 2 }}>bekomme:</span>
-                  {Array.from({ length: match.i_need_they_have }, (_, i) => (
-                    <StickerPill key={i} $type="get">#{50 + i}</StickerPill>
-                  ))}
-                </ExchangeSide>
-              </ExchangeRow>
+                  {/* <section> für Tausch-Details */}
+                  <ExchangeSection aria-label="Sticker-Tausch-Details">
+                    <ExchangeSide>
+                      <span aria-hidden="true" style={{ fontSize: 16 }}>↑</span>
+                      <StatusDot status="double" />
+                      <span style={{ fontSize: 12, color: '#6b6b8a', marginInlineEnd: 2 }}>
+                        <span className="sr-only">Ich gebe: </span>
+                      </span>
+                      {Array.from({ length: match.i_have_they_need }, (_, i) => (
+                        <StickerPill key={i} $type="give">#{10 + i}</StickerPill>
+                      ))}
+                    </ExchangeSide>
+                    <span aria-hidden="true" style={{ color: '#2a2a3a', fontSize: 18 }}>⇄</span>
+                    <ExchangeSide>
+                      <span aria-hidden="true" style={{ fontSize: 16 }}>↓</span>
+                      <StatusDot status="need" />
+                      <span style={{ fontSize: 12, color: '#6b6b8a', marginInlineEnd: 2 }}>
+                        <span className="sr-only">Ich bekomme: </span>
+                      </span>
+                      {Array.from({ length: match.i_need_they_have }, (_, i) => (
+                        <StickerPill key={i} $type="get">#{50 + i}</StickerPill>
+                      ))}
+                    </ExchangeSide>
+                  </ExchangeSection>
 
-              <Button
-                $variant="success"
-                $full
-                $size="sm"
-                onClick={() => handleMatchTap(match)}
-              >
-                🤝 {t('swap.requestSwap')}
-              </Button>
-            </MatchCard>
-          ))
+                  <Button $variant="success" $full $size="sm"
+                    onClick={() => handleMatchTap(match)}>
+                    🤝 {t('swap.requestSwap')}
+                  </Button>
+                </MatchArticle>
+              </MatchItem>
+            ))}
+          </MatchList>
         )}
-      </Page>
+      </PageSection>
 
       {/* Match Detail Sheet */}
       <BottomSheet
@@ -374,28 +429,29 @@ const MatchPage = () => {
       >
         {selectedMatch && (
           <>
-            <Card style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
-                <span style={{ color: '#6b6b8a' }}>Match-Score</span>
-                <span style={{ color: '#f5c842', fontFamily: "'Space Mono',monospace", fontWeight: 700 }}>
-                  {selectedMatch.match_score} Punkte
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
-                <span style={{ color: '#6b6b8a' }}>🎁 Ich gebe</span>
-                <span style={{ color: '#4adeae' }}>{selectedMatch.i_have_they_need} Sticker</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
-                <span style={{ color: '#6b6b8a' }}>📦 Ich bekomme</span>
-                <span style={{ color: '#f5c842' }}>{selectedMatch.i_need_they_have} Sticker</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span style={{ color: '#6b6b8a' }}>📍 Standort</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <FlagIcon code={selectedMatch.match_country_code} size={14} />
-                  <span>{selectedMatch.is_local ? 'Lokal 🚀' : 'International ✈️'}</span>
+            {/* <dl>: Label-Wert-Paare für Match-Details */}
+            <Card as="div" style={{ marginBottom: 12 }}>
+              <dl style={{ margin: 0 }}>
+                {[
+                  ['Match-Score', `${selectedMatch.match_score} Punkte`, '#f5c842'],
+                  ['🎁 Ich gebe', `${selectedMatch.i_have_they_need} Sticker`, '#4adeae'],
+                  ['📦 Ich bekomme', `${selectedMatch.i_need_they_have} Sticker`, '#f5c842'],
+                ].map(([label, value, color]) => (
+                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between',
+                                            fontSize: 13, marginBottom: 8 }}>
+                    <dt style={{ color: '#6b6b8a' }}>{label}</dt>
+                    <dd style={{ margin: 0, color, fontWeight: 700,
+                                 fontFamily: "'Space Mono',monospace" }}>{value}</dd>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <dt style={{ color: '#6b6b8a' }}>📍 Standort</dt>
+                  <dd style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <FlagIcon code={selectedMatch.match_country_code} size={14} />
+                    <span>{selectedMatch.is_local ? 'Lokal 🚀' : 'International ✈️'}</span>
+                  </dd>
                 </div>
-              </div>
+              </dl>
             </Card>
 
             <Button $variant="success" $full onClick={handleRequestSwap}>

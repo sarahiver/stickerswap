@@ -2,16 +2,21 @@ import { useState } from 'react';
 import { ThemeProvider } from 'styled-components';
 import styled from 'styled-components';
 
-import { theme }    from './theme/theme';
-import GlobalStyles from './theme/GlobalStyles';
-import BottomNav    from './components/BottomNav';
+import { theme }     from './theme/theme';
+import GlobalStyles  from './theme/GlobalStyles';
+import BottomNav     from './components/BottomNav';
 import DashboardPage from './pages/DashboardPage';
 
 // ============================================================
 // App.js — Root Component
-// Hier leben: ThemeProvider, GlobalStyles, Navigation
+// Semantisch: <body> → <div#root> → AppWrapper (kein extra div)
+// Layout: <header> (TopBar, bereits semantisch) +
+//         <main> (renderPage) + <nav> (BottomNav)
 // ============================================================
 
+// <body> trägt min-height via GlobalStyles.
+// AppWrapper ist das direkte Kind von #root — kein semantischer
+// Wrapper nötig, aber wir brauchen overflow-x: hidden hier.
 const AppWrapper = styled.div`
   min-height: 100vh;
   /* dvh = dynamic viewport height — korrekt auf iOS Safari
@@ -20,6 +25,8 @@ const AppWrapper = styled.div`
   background: ${({ theme }) => theme.colors.bg};
   /* PRINZIP 4: kein horizontales Scrollen */
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 `;
 
 const TopBar = styled.header`
@@ -38,15 +45,18 @@ const TopBar = styled.header`
   padding-top: calc(12px + env(safe-area-inset-top, 0px));
 `;
 
-const Logo = styled.div`
+// <span> statt <div>: Logo ist kein Inhaltsblock, sondern ein Label im <header>
+const Logo = styled.span`
   font-family: ${({ theme }) => theme.fonts.display};
   font-size: 26px;
   letter-spacing: 0.08em;
   color: ${({ theme }) => theme.colors.accent};
-  span { color: ${({ theme }) => theme.colors.accent2}; }
+  /* Kein display:block nötig — steht in flex-header */
+  em { font-style: normal; color: ${({ theme }) => theme.colors.accent2}; }
 `;
 
-const TokenBadge = styled.div`
+// <output> ist das korrekte semantische Element für berechnete Werte (Token-Guthaben)
+const TokenBadge = styled.output`
   font-family: ${({ theme }) => theme.fonts.mono};
   font-size: 12px;
   color: ${({ theme }) => theme.colors.accent};
@@ -56,6 +66,12 @@ const TokenBadge = styled.div`
   border-radius: ${({ theme }) => theme.radius.pill};
 `;
 
+// <main> erhält flex: 1 damit sie den Platz zwischen TopBar + BottomNav füllt
+const PageMain = styled.main`
+  flex: 1;
+  /* Kein overflow-hidden hier — jede Page steuert ihren Scroll selbst */
+`;
+
 const NAV_ITEMS = [
   { icon: '📊', label: 'Home' },
   { icon: '📖', label: 'Album' },
@@ -63,17 +79,19 @@ const NAV_ITEMS = [
   { icon: '👤', label: 'Profil' },
 ];
 
-// Page placeholder — wird in späteren Kapiteln ausgebaut
+// Page placeholder — semantisch: <section> mit <h2> + <p>
 const PlaceholderPage = ({ label }) => (
-  <div style={{ padding: '32px 16px', textAlign: 'center', color: '#6b6b8a' }}>
-    <div style={{ fontSize: 48, marginBottom: 16 }}>🚧</div>
-    <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 28, letterSpacing: '0.06em' }}>
+  <section style={{ padding: '32px 16px', textAlign: 'center', color: '#6b6b8a' }}
+           aria-label={label}>
+    <p style={{ fontSize: 48, margin: '0 0 16px' }} aria-hidden="true">🚧</p>
+    <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 28,
+                 letterSpacing: '0.06em', margin: '0 0 8px', color: '#f0f0f5' }}>
       {label}
-    </div>
-    <div style={{ fontSize: 14, marginTop: 8 }}>
+    </h2>
+    <p style={{ fontSize: 14, margin: 0 }}>
       Wird in einem späteren Kapitel implementiert.
-    </div>
-  </div>
+    </p>
+  </section>
 );
 
 function App() {
@@ -93,13 +111,21 @@ function App() {
     <ThemeProvider theme={theme}>
       <GlobalStyles />
       <AppWrapper>
+        {/* <header> ist bereits semantisch — TopBar aus Kapitel 0 */}
         <TopBar>
-          <Logo>Sticker<span>Swap</span></Logo>
-          <TokenBadge>⭐ 127 Token</TokenBadge>
+          {/* <h1>: App-Name ist die einzige H1 der gesamten App */}
+          <h1 style={{ margin: 0, lineHeight: 1 }}>
+            <Logo>Sticker<em>Swap</em></Logo>
+          </h1>
+          <TokenBadge aria-label="Token-Guthaben">⭐ 127 Token</TokenBadge>
         </TopBar>
 
-        {renderPage()}
+        {/* <main>: Einziger main-Bereich der App — React-Router tauscht Inhalt */}
+        <PageMain id="main-content">
+          {renderPage()}
+        </PageMain>
 
+        {/* <nav> ist bereits in BottomNav semantisch */}
         <BottomNav
           items={NAV_ITEMS}
           activeIndex={activeNav}

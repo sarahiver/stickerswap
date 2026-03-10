@@ -1,9 +1,12 @@
 import styled, { keyframes } from 'styled-components';
 
 // ============================================================
-// Toast — Kurze Feedback-Meldungen
-// Typen: 'default' | 'success' | 'error'
-// Wird via useToast Hook gesteuert
+// Toast — Semantik-Refactor Kapitel 3
+//
+// <output> ist das korrekte semantische Element für
+// dynamische Statusmeldungen (ARIA live region).
+// role="status" + aria-live="polite" → Screen-Reader liest vor.
+// Für Fehler: role="alert" + aria-live="assertive".
 // ============================================================
 
 const slideDown = keyframes`
@@ -11,7 +14,7 @@ const slideDown = keyframes`
   to   { transform: translateY(0)     translateX(-50%); opacity: 1; }
 `;
 
-const ToastWrap = styled.div`
+const ToastOutput = styled.output`
   position: fixed;
   top: calc(${({ theme }) => theme.spacing.md} + env(safe-area-inset-top, 0px));
   left: 50%;
@@ -37,7 +40,15 @@ const ToastWrap = styled.div`
 `;
 
 const Toast = ({ message, type = 'default' }) => (
-  <ToastWrap $type={type}>{message}</ToastWrap>
+  <ToastOutput
+    $type={type}
+    // Fehler sofort vorlesen (assertive), Erfolg nach aktuellem Kontext (polite)
+    role={type === 'error' ? 'alert' : 'status'}
+    aria-live={type === 'error' ? 'assertive' : 'polite'}
+    aria-atomic="true"
+  >
+    {message}
+  </ToastOutput>
 );
 
 export default Toast;
