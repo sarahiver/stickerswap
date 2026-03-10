@@ -1,195 +1,192 @@
-import { useState } from 'react'
-import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
-import { useAuth } from '../context/AuthContext'
-import Button from '../components/Button'
-import Card from '../components/Card'
-import { marginStart } from '../theme/rtl'
+// src/pages/LoginPage.jsx
+// Kapitel 8 — Login via Magic Link (primär) + Password (sekundär)
 
-// ============================================================
-// LoginPage — Kapitel 1: Auth
-// Google OAuth als Primär-Login (empfohlen)
-// E-Mail/Passwort als Fallback
-// ============================================================
+import React, { useState } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { useTranslation } from 'react-i18next';
+import { supabase } from '../lib/supabaseClient';
 
-const Page = styled.div`
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+const fadeIn = keyframes`from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}`;
+const spin   = keyframes`to{transform:rotate(360deg);}`;
+
+const Page = styled.main`
+  height: 100dvh;
+  background: var(--color-bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
   padding: 24px;
-  background: ${({ theme }) => theme.colors.bg};
-`
+  animation: ${fadeIn} 300ms ease;
+`;
 
 const Logo = styled.div`
-  font-family: ${({ theme }) => theme.fonts.display};
-  font-size: 52px;
-  letter-spacing: 0.06em;
-  color: ${({ theme }) => theme.colors.accent};
-  margin-bottom: 8px;
-  span { color: ${({ theme }) => theme.colors.accent2}; }
-`
+  font-size: 48px; margin-bottom: 8px; text-align: center;
+`;
 
-const Tagline = styled.div`
-  color: ${({ theme }) => theme.colors.muted};
-  font-size: 14px;
-  margin-bottom: 40px;
-  text-align: center;
-`
+const AppName = styled.h1`
+  font-size: 28px; font-weight: 800; color: #fff;
+  text-align: center; margin: 0 0 4px;
+`;
 
-const LoginCard = styled(Card)`
-  width: 100%;
-  max-width: 400px;
-`
+const Tagline = styled.p`
+  font-size: 14px; color: var(--color-text-dim);
+  text-align: center; margin: 0 0 36px;
+`;
 
-const GoogleBtn = styled(Button)`
-  background: #fff;
-  color: #333;
-  font-weight: 600;
-  border: 1.5px solid #e0e0e0;
-  gap: 10px;
-  &:active { background: #f5f5f5; }
-`
-
-const GoogleIcon = styled.span`
-  font-size: 20px;
-  line-height: 1;
-`
-
-const Divider = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 20px 0;
-  color: ${({ theme }) => theme.colors.muted};
-  font-size: 13px;
-  &::before, &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: ${({ theme }) => theme.colors.border};
-  }
-`
+const Form = styled.div`
+  width: 100%; max-width: 360px;
+  display: flex; flex-direction: column; gap: 10px;
+`;
 
 const Input = styled.input`
   width: 100%;
-  background: ${({ theme }) => theme.colors.surface2};
-  border: 1.5px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.md};
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: #fff; font-size: 15px;
+  &::placeholder { color: var(--color-text-mute); }
+  &:focus { outline: 2px solid var(--color-accent); outline-offset: -1px; border-color: transparent; }
+`;
+
+const PrimaryBtn = styled.button`
+  width: 100%; padding: 15px;
+  background: var(--color-accent);
+  color: #fff; border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 800;
+  cursor: pointer; touch-action: manipulation;
+  min-height: 52px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  &:disabled { opacity: 0.5; pointer-events: none; }
+`;
+
+const Divider = styled.div`
+  display: flex; align-items: center; gap: 10px; margin: 4px 0;
+  &::before, &::after { content: ''; flex: 1; height: 1px; background: var(--color-border); }
+  span { font-size: 11px; color: var(--color-text-mute); }
+`;
+
+const SecondaryBtn = styled.button`
+  width: 100%; padding: 13px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text-dim); font-size: 14px; font-weight: 600;
+  cursor: pointer; touch-action: manipulation; min-height: 44px;
+`;
+
+const MsgBox = styled.div`
   padding: 12px 14px;
-  font-size: 15px;
-  color: ${({ theme }) => theme.colors.text};
-  outline: none;
-  transition: border-color 0.15s;
-  margin-bottom: 10px;
-  /* RTL: text-align passt sich automatisch an via dir-Attribut */
-  &:focus { border-color: ${({ theme }) => theme.colors.accent}; }
-  &::placeholder { color: ${({ theme }) => theme.colors.muted}; }
-`
-
-const ErrorMsg = styled.div`
-  background: rgba(232,67,90,0.1);
-  border: 1px solid rgba(232,67,90,0.3);
-  border-radius: ${({ theme }) => theme.radius.md};
-  padding: 10px 14px;
+  background: ${({ $type }) => $type === 'success' ? 'rgba(50,180,100,0.1)' : 'rgba(255,80,80,0.1)'};
+  border: 1px solid ${({ $type }) => $type === 'success' ? 'rgba(50,180,100,0.3)' : 'rgba(255,80,80,0.3)'};
+  border-radius: 10px;
   font-size: 13px;
-  color: ${({ theme }) => theme.colors.accent2};
-  margin-bottom: 12px;
-`
-
-const Footer = styled.div`
-  margin-top: 16px;
+  color: ${({ $type }) => $type === 'success' ? '#5de8a0' : '#ff9090'};
   text-align: center;
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.muted};
-`
+`;
 
-const Link = styled.button`
-  color: ${({ theme }) => theme.colors.accent};
-  font-size: 13px;
-  ${marginStart('4px')}
-  min-height: auto;
-  &:hover { text-decoration: underline; }
-`
+const Spinner = styled.span`
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: ${spin} 600ms linear infinite;
+  display: inline-block;
+`;
 
-// ── Component ─────────────────────────────────────────────────
+const LoginPage = () => {
+  const { t } = useTranslation();
+  const [email,    setEmail]    = useState('');
+  const [password, setPassword] = useState('');
+  const [mode,     setMode]     = useState('magic'); // 'magic' | 'password' | 'signup'
+  const [loading,  setLoading]  = useState(false);
+  const [message,  setMessage]  = useState(null);    // { text, type }
 
-const LoginPage = ({ onSwitchToRegister }) => {
-  const { t }                     = useTranslation()
-  const { loginWithGoogle, loginWithEmail, error } = useAuth()
+  const handleMagicLink = async () => {
+    if (!email) return;
+    setLoading(true); setMessage(null);
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    setLoading(false);
+    setMessage(error
+      ? { text: error.message, type: 'error' }
+      : { text: t('auth.magicLinkSent'), type: 'success' }
+    );
+  };
 
-  const [mode,     setMode]     = useState('login')  // 'login' | 'register'
-  const [email,    setEmail]    = useState('')
-  const [password, setPassword] = useState('')
-  const [loading,  setLoading]  = useState(false)
-  const [localErr, setLocalErr] = useState('')
-
-  const handleEmailLogin = async () => {
-    setLocalErr('')
-    if (!email || !password) { setLocalErr('Bitte E-Mail und Passwort eingeben.'); return }
-    setLoading(true)
-    const result = await loginWithEmail(email, password)
-    setLoading(false)
-    if (!result.success) setLocalErr(result.error)
-  }
-
-  const displayError = localErr || error
+  const handlePassword = async () => {
+    if (!email || !password) return;
+    setLoading(true); setMessage(null);
+    const fn = mode === 'signup'
+      ? supabase.auth.signUp({ email, password })
+      : supabase.auth.signInWithPassword({ email, password });
+    const { error } = await fn;
+    setLoading(false);
+    if (error) setMessage({ text: error.message, type: 'error' });
+    else if (mode === 'signup') setMessage({ text: 'Willkommen! Check deine E-Mails.', type: 'success' });
+  };
 
   return (
     <Page>
-      <Logo>Sticker<span>Swap</span></Logo>
-      <Tagline>{t('app.tagline')}</Tagline>
+      <Logo aria-hidden="true">🔄</Logo>
+      <AppName>StickerSwap</AppName>
+      <Tagline>Panini-Sticker tauschen — WM 2026 🏆</Tagline>
 
-      <LoginCard>
-        {/* Google OAuth — Primär */}
-        <GoogleBtn
-          $variant="secondary"
-          $full
-          onClick={loginWithGoogle}
-        >
-          <GoogleIcon>🔵</GoogleIcon>
-          {t('auth.loginWithGoogle')}
-        </GoogleBtn>
-
-        <Divider>oder</Divider>
-
-        {/* E-Mail/Passwort — Sekundär */}
-        {displayError && <ErrorMsg>{displayError}</ErrorMsg>}
-
+      <Form>
         <Input
           type="email"
-          placeholder={t('auth.email')}
           value={email}
           onChange={e => setEmail(e.target.value)}
+          placeholder={t('auth.email')}
+          aria-label={t('auth.email')}
+          inputMode="email"
           autoComplete="email"
-          dir="ltr"  /* E-Mail immer LTR */
-        />
-        <Input
-          type="password"
-          placeholder={t('auth.password')}
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          autoComplete="current-password"
-          dir="ltr"
+          onKeyDown={e => e.key === 'Enter' && mode === 'magic' && handleMagicLink()}
         />
 
-        <Button
-          $variant="primary"
-          $full
-          onClick={handleEmailLogin}
-          disabled={loading}
-        >
-          {loading ? t('common.loading') : t('auth.login')}
-        </Button>
+        {mode !== 'magic' && (
+          <Input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder={t('auth.password')}
+            aria-label={t('auth.password')}
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            onKeyDown={e => e.key === 'Enter' && handlePassword()}
+          />
+        )}
 
-        <Footer>
-          {t('auth.noAccountYet')}
-          <Link onClick={onSwitchToRegister}>{t('auth.register')}</Link>
-        </Footer>
-      </LoginCard>
+        {message && <MsgBox $type={message.type}>{message.text}</MsgBox>}
+
+        {mode === 'magic' ? (
+          <>
+            <PrimaryBtn onClick={handleMagicLink} disabled={loading || !email}>
+              {loading ? <Spinner /> : null}
+              {t('auth.magicLink')} ✉️
+            </PrimaryBtn>
+            <Divider><span>oder</span></Divider>
+            <SecondaryBtn onClick={() => setMode('password')}>
+              {t('auth.login')} mit Passwort
+            </SecondaryBtn>
+            <SecondaryBtn onClick={() => setMode('signup')}>
+              {t('auth.noAccount')} {t('auth.signup')}
+            </SecondaryBtn>
+          </>
+        ) : (
+          <>
+            <PrimaryBtn onClick={handlePassword} disabled={loading || !email || !password}>
+              {loading ? <Spinner /> : null}
+              {mode === 'signup' ? t('auth.signup') : t('auth.login')}
+            </PrimaryBtn>
+            <SecondaryBtn onClick={() => setMode('magic')}>
+              ← {t('auth.magicLink')} nutzen
+            </SecondaryBtn>
+          </>
+        )}
+      </Form>
     </Page>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;

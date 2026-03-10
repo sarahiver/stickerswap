@@ -1,547 +1,317 @@
-import { useState } from 'react';
-import styled from 'styled-components';
+// src/pages/DashboardPage.jsx
+// Kapitel 8 — Home Dashboard: Greeting, Stats, Action-Center, Live-Ticker
 
-import BottomSheet   from '../components/BottomSheet';
-import Button        from '../components/Button';
-import Card          from '../components/Card';
-import Tag           from '../components/Tag';
-import ProgressBar   from '../components/ProgressBar';
-import StickerCell, { StickerGrid } from '../components/StickerCell';
-import Toast         from '../components/Toast';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import styled, { keyframes } from 'styled-components';
+import { useTranslation } from 'react-i18next';
+import { supabase } from '../lib/supabaseClient';
+import { AlbumHeaderSkeleton } from '../components/StickerSkeleton';
 
-import { useToast }       from '../hooks/useToast';
-import { useBottomSheet } from '../hooks/useBottomSheet';
+const fadeIn = keyframes`from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); }`;
 
-// ============================================================
-// DashboardPage — Semantik-Refactor Kapitel 3
-//
-// Semantische Struktur:
-//   <main> (in App.js)
-//     <section aria-label="Übersicht"> → KPIs
-//     <section aria-label="Album-Fortschritt"> → Progress
-//     <section aria-label="Matches"> → Match-Alert
-//     <section aria-labelledby="group-a-heading"> → Sticker-Grid
-//       <h2 id="group-a-heading">Gruppe A
-//       <ul role="grid"> → Sticker-Liste (virtualisiert)
-//         <li> → <article> (jeder Sticker)
-//
-// Inline-Style-divs wurden ersetzt durch:
-//   Album-Name: <h3>   Rarity: <dl>/<dt>/<dd>
-//   Match-User: <address> (Kontaktdaten), Avatar: <figure>
-//   Sticker-#:  <figcaption> im Sheet
-// ============================================================
-
-// ── Styled Components (semantisch) ───────────────────────────
-
-// <section>-Wrapper mit konsistentem Abstand
-const Section = styled.section`
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+// ─── Styled ───────────────────────────────────────────────────────────────────
+const Page = styled.div`
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  background: var(--color-bg);
+  animation: ${fadeIn} 250ms ease;
 `;
 
-// KPI-Grid: <ul> mit drei <li>s
-const KpiList = styled.ul`
+const PageInner = styled.div`
+  padding: 20px 16px calc(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 480px;
+  margin: 0 auto;
+`;
+
+// Welcome
+const WelcomeCard = styled.section`
+  background: linear-gradient(135deg, rgba(124,111,205,0.2) 0%, rgba(80,60,180,0.08) 100%);
+  border: 1px solid rgba(124,111,205,0.2);
+  border-radius: 20px;
+  padding: 18px;
+`;
+
+const Greeting = styled.h1`
+  font-size: 20px; font-weight: 800; color: #fff; margin: 0 0 4px;
+`;
+
+const ProgressText = styled.p`
+  font-size: 13px; color: var(--color-text-dim); margin: 0 0 10px;
+`;
+
+const ProgressBar = styled.div`
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+`;
+
+const ProgressFill = styled.div`
+  height: 100%;
+  width: ${({ $pct }) => $pct}%;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-accent2));
+  border-radius: 3px;
+  transition: width 600ms ease;
+`;
+
+// Stats Row
+const StatsRow = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: ${({ theme }) => theme.spacing.sm};
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  gap: 8px;
+  margin-top: 12px;
 `;
 
-// KPI-Karte: <li> + <article> innen
-const KpiItem = styled.li``;
-
-const KpiCard = styled(Card).attrs({ as: 'article' })`
+const StatItem = styled.div`
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+  padding: 10px 8px;
   text-align: center;
-  padding: 14px 8px;
 `;
 
-// <strong> für Zahlenwert, <small> für Label
-const KpiVal = styled.strong`
-  display: block;
-  font-family: ${({ theme }) => theme.fonts.display};
-  font-size: 30px;
-  color: ${({ theme }) => theme.colors.accent};
-  line-height: 1;
-  font-weight: normal;  /* Bebas Neue hat kein Bold */
-`;
-const KpiLabel = styled.small`
-  display: block;
-  font-size: 11px;
-  color: ${({ theme }) => theme.colors.muted};
-  margin-top: 3px;
+const StatValue = styled.p`
+  font-size: 20px; font-weight: 800; color: #fff; margin: 0 0 2px;
 `;
 
-// Album-Card: als <article>
-const AlbumCard = styled(Card).attrs({ as: 'article' })``;
-
-const AlbumRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  gap: 8px;
-  flex-wrap: wrap;
-`;
-
-// Album-Titel: <h3> (H2 kommt vom Section-Heading)
-const AlbumTitle = styled.h3`
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0 0 2px;
-  color: ${({ theme }) => theme.colors.text};
-`;
-const AlbumSub = styled.p`
-  font-size: 12px;
-  color: ${({ theme }) => theme.colors.muted};
+const StatLabel = styled.p`
+  font-size: 9px; font-weight: 700;
+  color: var(--color-text-mute);
+  text-transform: uppercase; letter-spacing: 0.5px;
   margin: 0;
 `;
 
-// Match-Alert-Card
-const MatchAlertCard = styled(Card).attrs({ as: 'aside' })``;
-
-const MatchAlertRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+// Action Center
+const SectionTitle = styled.h2`
+  font-size: 13px; font-weight: 700;
+  color: var(--color-text-dim);
+  text-transform: uppercase; letter-spacing: 0.6px;
+  margin: 0 0 10px;
 `;
 
-const MatchAlertTitle = styled.h3`
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 2px;
-`;
-const MatchAlertSub = styled.p`
-  font-size: 12px;
-  color: ${({ theme }) => theme.colors.muted};
-  margin: 0;
-`;
-
-// Sticker-Section
-const StickerSection = styled.section`
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
-`;
-
-const StickerSectionHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-  gap: 8px;
-`;
-
-// H2 für Gruppen-Überschrift (H1 = App-Name in TopBar)
-const GroupHeading = styled.h2`
-  font-family: ${({ theme }) => theme.fonts.display};
-  font-size: 22px;
-  letter-spacing: 0.04em;
-  margin: 0;
-`;
-
-const LegendList = styled.ul`
-  display: flex;
-  gap: 4px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-// Sheet: Sticker-Detail ───────────────────────────────────────
-
-// <figure> + <figcaption> für Sticker-Vorschau
-const StickerFigure = styled.figure`
-  text-align: center;
-  padding: 8px 0 20px;
-  margin: 0;
-`;
-const StickerFigIcon = styled.p`
-  font-size: 64px;
-  margin-bottom: 8px;
-  line-height: 1;
-`;
-const StickerFigCaption = styled.figcaption`
-  font-family: ${({ theme }) => theme.fonts.display};
-  font-size: 34px;
-  letter-spacing: 0.06em;
-  margin: 0 0 8px;
-`;
-
-// <dl> für Sticker-Metadaten (Label-Wert-Paare)
-const MetaDl = styled.dl`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.muted};
-  padding: 10px 14px;
-  background: ${({ theme }) => theme.colors.surface2};
-  border-radius: ${({ theme }) => theme.radius.md};
-  margin: 0 0 8px;
-  & dt { flex: 1; }
-  & dd { margin: 0; color: ${({ theme }) => theme.colors.accent}; font-weight: 600; }
-`;
-
-// Sticker-Status-Auswahl: semantisches Grid mit Role
-const StatusChoiceList = styled.ul`
+const ActionGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  margin-top: 16px;
-  list-style: none;
-  padding: 0;
-`;
-const StatusChoiceItem = styled.li``;
-
-// Match-Sheet ─────────────────────────────────────────────────
-
-// Match-Liste: <ul> mit <li>s
-const MatchList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-const MatchItem = styled.li`
-  margin-bottom: 12px;
-`;
-
-// Match-Card als <article> (eigenständiger Inhaltsblock)
-const MatchArticle = styled(Card).attrs({ as: 'article' })``;
-
-const MatchCardHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  gap: 8px;
-`;
-
-const MatchUserRow = styled.div`
-  display: flex;
-  align-items: center;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
 `;
 
-// <figure> für User-Avatar
-const AvatarFigure = styled.figure`
-  margin: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    ${({ theme }) => theme.colors.accent},
-    ${({ theme }) => theme.colors.accent2}
+const ActionBtn = styled.button`
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 18px 12px;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 150ms;
+  min-height: 90px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+
+  &:active {
+    background: rgba(124,111,205,0.12);
+    border-color: var(--color-accent);
+    transform: scale(0.97);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+`;
+
+const ActionIcon = styled.span`font-size: 28px; line-height: 1;`;
+const ActionLabel = styled.span`
+  font-size: 13px; font-weight: 700; color: #fff;
+`;
+
+// Activity Feed
+const FeedList = styled.ul`
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 2px;
+`;
+
+const FeedItem = styled.li`
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+  animation: ${fadeIn} 300ms ease;
+  &:last-child { border-bottom: none; }
+`;
+
+const FeedIcon = styled.div`
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+`;
+
+const FeedText = styled.p`
+  font-size: 13px; color: var(--color-text-dim); margin: 0;
+  flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+`;
+
+const FeedTime = styled.time`
+  font-size: 10px; color: var(--color-text-mute); flex-shrink: 0;
+`;
+
+const EmptyFeed = styled.p`
+  text-align: center; padding: 20px 0;
+  color: var(--color-text-mute); font-size: 13px;
+`;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const getGreeting = (t) => {
+  const h = new Date().getHours();
+  if (h < 12) return t('dashboard.greeting.morning',   'Guten Morgen');
+  if (h < 18) return t('dashboard.greeting.afternoon', 'Guten Tag');
+  return              t('dashboard.greeting.evening',   'Guten Abend');
+};
+
+const formatRelTime = (iso) => {
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 60)   return 'Jetzt';
+  if (diff < 3600) return `${Math.floor(diff/60)}m`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h`;
+  return `${Math.floor(diff/86400)}d`;
+};
+
+const activityFromLedger = (tx, t) => {
+  const icons = { purchase: '📥', swap_lock: '🔒', swap_refund: '🔓', reputation_change: '⭐', default: '🔄' };
+  return {
+    icon: icons[tx.type] ?? icons.default,
+    text: tx.description || t(`wallet.txType.${tx.type}`, tx.type),
+    time: tx.created_at,
+  };
+};
+
+// ─── Hauptkomponente ──────────────────────────────────────────────────────────
+const DashboardPage = ({ user, profile }) => {
+  const { t }    = useTranslation();
+  const navigate = useNavigate();
+
+  const [stats,    setStats]    = useState(null);
+  const [activity, setActivity] = useState([]);
+  const [loading,  setLoading]  = useState(true);
+
+  const loadDashboard = useCallback(async () => {
+    if (!user?.id) return;
+
+    const [ledgerRes, swapsRes, albumRes] = await Promise.all([
+      supabase.from('token_ledger')
+        .select('*').eq('user_id', user.id)
+        .order('created_at', { ascending: false }).limit(8),
+      supabase.from('swaps')
+        .select('id,status')
+        .or(`user_a_id.eq.${user.id},user_b_id.eq.${user.id}`)
+        .in('status', ['pending','locked','shipped_a','shipped_b','both_shipped']),
+      // Fortschritt: erstes Album des Users
+      supabase.from('user_stickers')
+        .select('status', { count: 'exact' })
+        .eq('user_id', user.id),
+    ]);
+
+    const totalStickers = albumRes.count ?? 0;
+    const haveStickers  = albumRes.data?.filter(s => s.status === 'have').length ?? 0;
+    const pct = totalStickers > 0 ? Math.round((haveStickers / totalStickers) * 100) : 0;
+
+    setStats({
+      pct,
+      openSwaps:  swapsRes.data?.length ?? 0,
+      reputation: profile?.reputation_score ?? 0,
+      balance:    profile?.token_balance ?? 0,
+    });
+
+    setActivity((ledgerRes.data ?? []).map(tx => activityFromLedger(tx, t)));
+    setLoading(false);
+  }, [user?.id, profile, t]);
+
+  useEffect(() => { loadDashboard(); }, [loadDashboard]);
+
+  const displayName = profile?.display_name ?? user?.email?.split('@')[0] ?? 'Sammler';
+
+  if (loading) return (
+    <Page><PageInner><AlbumHeaderSkeleton /><AlbumHeaderSkeleton /></PageInner></Page>
   );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 16px;
-  flex-shrink: 0;
-  color: ${({ theme }) => theme.colors.bg};
-  font-family: ${({ theme }) => theme.fonts.display};
-`;
-
-// <address> für Kontaktdaten des Match-Users
-const MatchAddress = styled.address`
-  font-style: normal;
-`;
-const MatchUsername = styled.strong`
-  display: block;
-  font-size: 14px;
-`;
-const MatchMeta = styled.p`
-  font-size: 11px;
-  color: ${({ theme }) => theme.colors.muted};
-  margin: 2px 0 0;
-`;
-
-// Sticker-Tausch-Zeile: semantisch via <p> mit <span>
-const MatchStickers = styled.p`
-  font-size: 12px;
-  margin: 10px 0;
-  .give { color: ${({ theme }) => theme.colors.accent3}; }
-  .get  { color: ${({ theme }) => theme.colors.accent};  }
-`;
-
-// Principles-Card
-const PrinciplesCard = styled(Card).attrs({ as: 'aside' })``;
-const PrinciplesList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-const PrincipleItem = styled.li`
-  display: flex;
-  gap: 10px;
-  margin-bottom: 6px;
-  font-size: 13px;
-`;
-
-// ── Demo Data ─────────────────────────────────────────────────
-
-const STICKERS = Array.from({ length: 42 }, (_, i) => ({
-  number: i + 1,
-  icon: ['🇩🇪','🇫🇷','🇧🇷','🇪🇸','⭐','🏆','🇮🇹'][i % 7],
-  status: i % 7 === 0 ? 'double' :
-          i % 5 === 0 ? 'have'   :
-          i % 11 === 0 ? 'locked' : 'need',
-  count: i % 7 === 0 ? (Math.floor(i / 7) % 3) + 2 : 1,
-}));
-
-const MATCHES = [
-  { name: 'fußball_kroos', rating: '5.0', trades: 47, city: 'München',
-    give: ['#47', '#112'], get: ['#8', '#201'], match: 94 },
-  { name: 'sammler_profi', rating: '4.8', trades: 132, city: 'Hamburg',
-    give: ['#33', '#78'], get: ['#199', '#304'], match: 87 },
-  { name: 'panini_petra',  rating: '4.9', trades: 23,  city: 'Berlin',
-    give: ['#5'],          get: ['#88'],          match: 71 },
-];
-
-// ── Component ─────────────────────────────────────────────────
-
-const DashboardPage = () => {
-  const { toast, show: showToast } = useToast();
-  const stickerSheet = useBottomSheet();
-  const matchSheet   = useBottomSheet();
-
-  const handleStickerTap = (sticker) => stickerSheet.open(sticker);
-
-  const handleStatusChange = (newStatus) => {
-    const labels = {
-      have:   '✓ Als vorhanden markiert',
-      double: '✓ Als doppelt markiert',
-      need:   '✓ Als gesucht markiert',
-    };
-    showToast(labels[newStatus] || '✓ Gespeichert', 'success');
-    stickerSheet.close();
-  };
-
-  const handleMatchRequest = (matchName) => {
-    showToast(`✓ Tausch-Anfrage an ${matchName} gesendet!`, 'success');
-    matchSheet.close();
-  };
 
   return (
-    <>
-      {toast && <Toast message={toast.message} type={toast.type} />}
+    <Page>
+      <PageInner>
+        {/* ── Welcome ── */}
+        <WelcomeCard aria-label="Willkommen">
+          <Greeting>{getGreeting(t)}, {displayName} 👋</Greeting>
+          {stats && (
+            <>
+              <ProgressText>
+                {t('dashboard.progress', { percent: stats.pct, album: 'WM 2026' })}
+              </ProgressText>
+              <ProgressBar role="progressbar" aria-valuenow={stats.pct} aria-valuemin={0} aria-valuemax={100}>
+                <ProgressFill $pct={stats.pct} />
+              </ProgressBar>
+              <StatsRow>
+                <StatItem>
+                  <StatValue>{stats.openSwaps}</StatValue>
+                  <StatLabel>{t('dashboard.openSwaps')}</StatLabel>
+                </StatItem>
+                <StatItem>
+                  <StatValue>{stats.reputation}</StatValue>
+                  <StatLabel>{t('dashboard.reputation')}</StatLabel>
+                </StatItem>
+                <StatItem>
+                  <StatValue>{stats.balance}</StatValue>
+                  <StatLabel>{t('dashboard.balance')}</StatLabel>
+                </StatItem>
+              </StatsRow>
+            </>
+          )}
+        </WelcomeCard>
 
-      {/* Padding + safe-area: inline-Element, kein Landmark-Wrapper nötig */}
-      <div style={{ padding: '16px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))', overflowX: 'hidden' }}>
+        {/* ── Action Center ── */}
+        <section aria-label="Schnellzugriff">
+          <SectionTitle>Quick Actions</SectionTitle>
+          <ActionGrid>
+            <ActionBtn
+              onClick={() => navigate('/albums')}
+              aria-label={t('dashboard.actionEnter')}
+            >
+              <ActionIcon aria-hidden="true">✏️</ActionIcon>
+              <ActionLabel>{t('dashboard.actionEnter')}</ActionLabel>
+            </ActionBtn>
+            <ActionBtn
+              onClick={() => navigate('/matches')}
+              aria-label={t('dashboard.actionMatches')}
+            >
+              <ActionIcon aria-hidden="true">🤝</ActionIcon>
+              <ActionLabel>{t('dashboard.actionMatches')}</ActionLabel>
+            </ActionBtn>
+          </ActionGrid>
+        </section>
 
-        {/* ── KPI-Sektion ── */}
-        <Section aria-label="Sammlungs-Übersicht">
-          <KpiList>
-            <KpiItem>
-              <KpiCard><KpiVal>342</KpiVal><KpiLabel>Gesammelt</KpiLabel></KpiCard>
-            </KpiItem>
-            <KpiItem>
-              <KpiCard><KpiVal>87</KpiVal><KpiLabel>Doppelt</KpiLabel></KpiCard>
-            </KpiItem>
-            <KpiItem>
-              <KpiCard><KpiVal>241</KpiVal><KpiLabel>Gesucht</KpiLabel></KpiCard>
-            </KpiItem>
-          </KpiList>
-        </Section>
-
-        {/* ── Album-Fortschritt ── */}
-        <Section aria-label="Album-Fortschritt">
-          <AlbumCard>
-            <AlbumRow>
-              <div>
-                <AlbumTitle>WM 2026</AlbumTitle>
-                <AlbumSub>51% vollständig</AlbumSub>
-              </div>
-              <Tag $color="yellow">342 / 670</Tag>
-            </AlbumRow>
-            <ProgressBar value={342} max={670} label="WM 2026 Album-Fortschritt" />
-          </AlbumCard>
-        </Section>
-
-        {/* ── Match-Alert ── */}
-        <Section aria-label="Neue Matches">
-          <MatchAlertCard>
-            <MatchAlertRow>
-              <div>
-                <MatchAlertTitle>🎯 3 neue Matches!</MatchAlertTitle>
-                <MatchAlertSub>Jemand hat genau deine Fehlkarten</MatchAlertSub>
-              </div>
-              <Button $variant="success" $size="sm" onClick={() => matchSheet.open()}>
-                Ansehen
-              </Button>
-            </MatchAlertRow>
-          </MatchAlertCard>
-        </Section>
-
-        {/* ── Sticker-Grid: Gruppe A ── */}
-        <StickerSection aria-labelledby="group-a-heading">
-          <StickerSectionHeader>
-            <GroupHeading id="group-a-heading">Gruppe A 🇩🇪</GroupHeading>
-            <LegendList aria-label="Legende">
-              <li><Tag $color="green">● Habe</Tag></li>
-              <li><Tag $color="yellow">● Doppelt</Tag></li>
-            </LegendList>
-          </StickerSectionHeader>
-          {/*
-            StickerGrid ist <ul role="grid"> intern.
-            Jede StickerCell ist <li><button>.
-          */}
-          <StickerGrid>
-            {STICKERS.map((s) => (
-              <StickerCell
-                key={s.number}
-                number={s.number}
-                icon={s.icon}
-                status={s.status}
-                count={s.count}
-                onClick={() => handleStickerTap(s)}
-              />
-            ))}
-          </StickerGrid>
-        </StickerSection>
-
-        {/* ── Mobile-First Principles ── */}
-        <PrinciplesCard aria-label="Kapitel-0-Prinzipien">
-          <p style={{
-            fontFamily: "'Bebas Neue',cursive",
-            fontSize: 16, letterSpacing: '0.06em',
-            color: '#f5c842', marginBottom: 12, marginTop: 0,
-          }}>
-            KAPITEL 0 — MOBILE-FIRST AKTIV
-          </p>
-          <PrinciplesList>
-            {[
-              ['P1', 'Layouts funktionieren auf iPhone SE (320px)'],
-              ['P2', 'Bottom Sheets statt Modals — tippe auf Sticker'],
-              ['P3', 'Alle Touch-Targets ≥ 44×44px'],
-              ['P4', 'overflow-x: hidden — kein horizontales Scrollen'],
-              ['P5', 'touch-action: manipulation — 0ms Tap-Delay'],
-            ].map(([p, desc]) => (
-              <PrincipleItem key={p}>
-                <span style={{ fontFamily: "'Space Mono',monospace", color: '#4adeae', flexShrink: 0 }}>
-                  ✅ {p}
-                </span>
-                <span style={{ color: '#6b6b8a' }}>{desc}</span>
-              </PrincipleItem>
-            ))}
-          </PrinciplesList>
-        </PrinciplesCard>
-
-      </div>
-
-      {/* ── Sticker-Detail Sheet ── */}
-      <BottomSheet
-        isOpen={stickerSheet.isOpen}
-        onClose={stickerSheet.close}
-        title={stickerSheet.data ? `Sticker #${stickerSheet.data.number}` : ''}
-        snap="half"
-      >
-        {stickerSheet.data && (
-          <>
-            {/* <figure>: visuelle Repräsentation des Stickers */}
-            <StickerFigure>
-              <StickerFigIcon aria-hidden="true">
-                {stickerSheet.data.icon}
-              </StickerFigIcon>
-              <StickerFigCaption>
-                STICKER #{stickerSheet.data.number}
-              </StickerFigCaption>
-              <Tag $color={
-                stickerSheet.data.status === 'have'   ? 'green'  :
-                stickerSheet.data.status === 'double' ? 'yellow' : 'red'
-              }>
-                {stickerSheet.data.status === 'have'   ? '✓ Vorhanden' :
-                 stickerSheet.data.status === 'double' ? `×${stickerSheet.data.count} Doppelt` :
-                 stickerSheet.data.status === 'locked' ? '🔒 Im Tausch' : '✗ Gesucht'}
-              </Tag>
-            </StickerFigure>
-
-            {/* <dl>: semantische Label-Wert-Paare */}
-            <MetaDl>
-              <dt>Rarity Score</dt>
-              <dd>3.2 — Standard</dd>
-            </MetaDl>
-            <MetaDl>
-              <dt>Token-Wert</dt>
-              <dd>2 Token</dd>
-            </MetaDl>
-            <MetaDl>
-              <dt>Andere haben doppelt</dt>
-              <dd style={{ color: '#4adeae' }}>47 Sammler</dd>
-            </MetaDl>
-
-            {/* Status-Auswahl: <ul> mit <li><button> */}
-            <StatusChoiceList aria-label="Status ändern">
-              <StatusChoiceItem>
-                <Button $variant="success" $size="sm" $full
-                  onClick={() => handleStatusChange('have')}>Hab ich</Button>
-              </StatusChoiceItem>
-              <StatusChoiceItem>
-                <Button $variant="primary" $size="sm" $full
-                  onClick={() => handleStatusChange('double')}>Doppelt</Button>
-              </StatusChoiceItem>
-              <StatusChoiceItem>
-                <Button $variant="secondary" $size="sm" $full
-                  onClick={() => handleStatusChange('need')}>Fehlt mir</Button>
-              </StatusChoiceItem>
-            </StatusChoiceList>
-
-            {stickerSheet.data.status === 'double' && (
-              <Button
-                $variant="success" $full
-                style={{ marginTop: 12 }}
-                onClick={() => { stickerSheet.close(); matchSheet.open(); }}
-              >
-                🎯 Match für diesen Sticker suchen
-              </Button>
-            )}
-          </>
-        )}
-      </BottomSheet>
-
-      {/* ── Matches Sheet ── */}
-      <BottomSheet
-        isOpen={matchSheet.isOpen}
-        onClose={matchSheet.close}
-        title="🎯 Deine Matches"
-        snap="full"
-      >
-        {/* <ul> für Match-Liste */}
-        <MatchList aria-label="Gefundene Tausch-Partner">
-          {MATCHES.map((m) => (
-            <MatchItem key={m.name}>
-              <MatchArticle>
-                <MatchCardHeader>
-                  <MatchUserRow>
-                    {/* <figure> für Avatar */}
-                    <AvatarFigure aria-hidden="true">
-                      {m.name[0].toUpperCase()}
-                    </AvatarFigure>
-                    {/* <address> für User-Kontaktdaten */}
-                    <MatchAddress>
-                      <MatchUsername>{m.name}</MatchUsername>
-                      <MatchMeta>⭐ {m.rating} · {m.trades} Tausche · {m.city}</MatchMeta>
-                    </MatchAddress>
-                  </MatchUserRow>
-                  <Tag $color="green">MATCH {m.match}%</Tag>
-                </MatchCardHeader>
-                <MatchStickers>
-                  <span className="give">Du gibst: {m.give.join(', ')} </span>
-                  <span style={{ color: '#6b6b8a' }}>→ </span>
-                  <span className="get">Du bekommst: {m.get.join(', ')}</span>
-                </MatchStickers>
-                <Button $variant="success" $size="sm" $full
-                  onClick={() => handleMatchRequest(m.name)}>
-                  Tausch anfragen
-                </Button>
-              </MatchArticle>
-            </MatchItem>
-          ))}
-        </MatchList>
-      </BottomSheet>
-    </>
+        {/* ── Activity Feed ── */}
+        <section aria-label={t('dashboard.recentActivity')}>
+          <SectionTitle>{t('dashboard.recentActivity')}</SectionTitle>
+          {activity.length === 0 ? (
+            <EmptyFeed>{t('dashboard.noActivity')}</EmptyFeed>
+          ) : (
+            <FeedList aria-live="polite">
+              {activity.map((item, i) => (
+                <FeedItem key={i}>
+                  <FeedIcon aria-hidden="true">{item.icon}</FeedIcon>
+                  <FeedText>{item.text}</FeedText>
+                  <FeedTime dateTime={item.time}>{formatRelTime(item.time)}</FeedTime>
+                </FeedItem>
+              ))}
+            </FeedList>
+          )}
+        </section>
+      </PageInner>
+    </Page>
   );
 };
 

@@ -1,139 +1,161 @@
-import { useState } from 'react';
-import { ThemeProvider } from 'styled-components';
-import styled from 'styled-components';
+// src/App.js
+// Kapitel 8 — Haupt-App: Router, Auth, PrivateRoutes, Notifications
 
-import { theme }     from './theme/theme';
-import GlobalStyles  from './theme/GlobalStyles';
-import BottomNav     from './components/BottomNav';
-import DashboardPage from './pages/DashboardPage';
+import React, { Suspense, lazy, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n/i18n';
+import GlobalStyles from './lib/GlobalStyles';
+import { ToastProvider } from './hooks/useToast';
+import useAuth from './hooks/useAuth';
+import useNotifications from './hooks/useNotifications';
+import usePWA from './hooks/usePWA';
+import AppShell from './components/AppShell';
+import InstallBanner from './components/InstallBanner';
+import { SuspenseWrapper } from './components/StickerSkeleton';
 
-// ============================================================
-// App.js — Root Component
-// Semantisch: <body> → <div#root> → AppWrapper (kein extra div)
-// Layout: <header> (TopBar, bereits semantisch) +
-//         <main> (renderPage) + <nav> (BottomNav)
-// ============================================================
+// Lazy-loaded pages
+const DashboardPage   = lazy(() => import('./pages/DashboardPage'));
+const AlbumLibrary    = lazy(() => import('./pages/AlbumLibrary'));
+const AlbumPage       = lazy(() => import('./pages/AlbumPage'));
+const MatchPage       = lazy(() => import('./pages/MatchPage'));
+const SwapDetailView  = lazy(() => import('./components/SwapDetailView'));
+const WalletPage      = lazy(() => import('./pages/WalletPage'));
+const SettingsPage    = lazy(() => import('./pages/SettingsPage'));
+const LoginPage       = lazy(() => import('./pages/LoginPage'));
 
-// <body> trägt min-height via GlobalStyles.
-// AppWrapper ist das direkte Kind von #root — kein semantischer
-// Wrapper nötig, aber wir brauchen overflow-x: hidden hier.
-const AppWrapper = styled.div`
-  min-height: 100vh;
-  /* dvh = dynamic viewport height — korrekt auf iOS Safari
-     wenn die Adressleiste ein- und ausblendet              */
-  min-height: 100dvh;
-  background: ${({ theme }) => theme.colors.bg};
-  /* PRINZIP 4: kein horizontales Scrollen */
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-`;
+// ─── Private Route ────────────────────────────────────────────────────────────
+const PrivateRoute = ({ user, loading, children }) => {
+  if (loading) return null;
+  return user ? children : <Navigate to="/login" replace />;
+};
 
-const TopBar = styled.header`
-  position: sticky;
-  top: 0;
-  z-index: ${({ theme }) => theme.zIndex.sticky};
-  background: rgba(10,10,15,0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  padding: 12px ${({ theme }) => theme.spacing.md};
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  /* Safe Area für iPhone Notch */
-  padding-top: calc(12px + env(safe-area-inset-top, 0px));
-`;
+// ─── Inner App (braucht Router-Context) ──────────────────────────────────────
+const InnerApp = () => {
+  const { user, profile, loading, signOut, reloadProfile } = useAuth();
+  const { swUpdateAvailable, applyUpdate } = usePWA();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const location = useLocation();
 
-// <span> statt <div>: Logo ist kein Inhaltsblock, sondern ein Label im <header>
-const Logo = styled.span`
-  font-family: ${({ theme }) => theme.fonts.display};
-  font-size: 26px;
-  letter-spacing: 0.08em;
-  color: ${({ theme }) => theme.colors.accent};
-  /* Kein display:block nötig — steht in flex-header */
-  em { font-style: normal; color: ${({ theme }) => theme.colors.accent2}; }
-`;
+  // Aktiver Swap für Notification-Deduplication
+  const activeSwapId = location.pathname.startsWith('/swap/')
+    ? location.pathname.split('/swap/')[1]
+    : null;
 
-// <output> ist das korrekte semantische Element für berechnete Werte (Token-Guthaben)
-const TokenBadge = styled.output`
-  font-family: ${({ theme }) => theme.fonts.mono};
-  font-size: 12px;
-  color: ${({ theme }) => theme.colors.accent};
-  background: rgba(245,200,66,0.1);
-  border: 1px solid rgba(245,200,66,0.2);
-  padding: 4px 10px;
-  border-radius: ${({ theme }) => theme.radius.pill};
-`;
+  // Globale Realtime-Benachrichtigungen
+  useNotifications({
+    userId: user?.id,
+    activeSwapId,
+    onSwapUpdate: () => {},
+    onNewMessage: () => setUnreadCount(c => c + 1),
+  });
 
-// <main> erhält flex: 1 damit sie den Platz zwischen TopBar + BottomNav füllt
-const PageMain = styled.main`
-  flex: 1;
-  /* Kein overflow-hidden hier — jede Page steuert ihren Scroll selbst */
-`;
+  // SW Update Banner
+  if (swUpdateAvailable) {
+    return (
+      <div style={{ position:'fixed',inset:0,background:'#0f0f1a',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:24,zIndex:9999 }}>
+        <p style={{ color:'#fff',fontSize:16,fontWeight:700,textAlign:'center' }}>
+          🚀 Update verfügbar!
+        </p>
+        <button
+          onClick={applyUpdate}
+          style={{ background:'#7c6fcd',color:'#fff',border:'none',borderRadius:12,padding:'13px 28px',fontSize:15,fontWeight:800,cursor:'pointer' }}
+        >
+          Jetzt aktualisieren
+        </button>
+      </div>
+    );
+  }
 
-const NAV_ITEMS = [
-  { icon: '📊', label: 'Home' },
-  { icon: '📖', label: 'Album' },
-  { icon: '🔄', label: 'Tauschen', badge: '3' },
-  { icon: '👤', label: 'Profil' },
-];
+  const lang = profile?.language ?? i18n.language?.slice(0,2) ?? 'de';
 
-// Page placeholder — semantisch: <section> mit <h2> + <p>
-const PlaceholderPage = ({ label }) => (
-  <section style={{ padding: '32px 16px', textAlign: 'center', color: '#6b6b8a' }}
-           aria-label={label}>
-    <p style={{ fontSize: 48, margin: '0 0 16px' }} aria-hidden="true">🚧</p>
-    <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 28,
-                 letterSpacing: '0.06em', margin: '0 0 8px', color: '#f0f0f5' }}>
-      {label}
-    </h2>
-    <p style={{ fontSize: 14, margin: 0 }}>
-      Wird in einem späteren Kapitel implementiert.
-    </p>
-  </section>
-);
-
-function App() {
-  const [activeNav, setActiveNav] = useState(0);
-
-  const renderPage = () => {
-    switch (activeNav) {
-      case 0:  return <DashboardPage />;
-      case 1:  return <PlaceholderPage label="Mein Album" />;
-      case 2:  return <PlaceholderPage label="Tauschbörse" />;
-      case 3:  return <PlaceholderPage label="Profil" />;
-      default: return <DashboardPage />;
-    }
-  };
+  const privateProps = { user, profile };
 
   return (
-    <ThemeProvider theme={theme}>
-      <GlobalStyles />
-      <AppWrapper>
-        {/* <header> ist bereits semantisch — TopBar aus Kapitel 0 */}
-        <TopBar>
-          {/* <h1>: App-Name ist die einzige H1 der gesamten App */}
-          <h1 style={{ margin: 0, lineHeight: 1 }}>
-            <Logo>Sticker<em>Swap</em></Logo>
-          </h1>
-          <TokenBadge aria-label="Token-Guthaben">⭐ 127 Token</TokenBadge>
-        </TopBar>
-
-        {/* <main>: Einziger main-Bereich der App — React-Router tauscht Inhalt */}
-        <PageMain id="main-content">
-          {renderPage()}
-        </PageMain>
-
-        {/* <nav> ist bereits in BottomNav semantisch */}
-        <BottomNav
-          items={NAV_ITEMS}
-          activeIndex={activeNav}
-          onSelect={setActiveNav}
+    <>
+      <Routes>
+        {/* Public */}
+        <Route
+          path="/login"
+          element={
+            user && !loading
+              ? <Navigate to="/" replace />
+              : <SuspenseWrapper><LoginPage /></SuspenseWrapper>
+          }
         />
-      </AppWrapper>
-    </ThemeProvider>
+
+        {/* Private: AppShell mit Tab-Bar */}
+        <Route
+          element={
+            <PrivateRoute user={user} loading={loading}>
+              <AppShell unreadCount={unreadCount} />
+            </PrivateRoute>
+          }
+        >
+          <Route index element={
+            <SuspenseWrapper>
+              <DashboardPage {...privateProps} />
+            </SuspenseWrapper>
+          } />
+          <Route path="albums" element={
+            <SuspenseWrapper>
+              <AlbumLibrary userId={user?.id} language={lang} />
+            </SuspenseWrapper>
+          } />
+          <Route path="album/:id" element={
+            <SuspenseWrapper>
+              <AlbumPage userId={user?.id} />
+            </SuspenseWrapper>
+          } />
+          <Route path="matches" element={
+            <SuspenseWrapper>
+              <MatchPage albums={[]} currentUser={user} />
+            </SuspenseWrapper>
+          } />
+          <Route path="swap/:id" element={
+            <SuspenseWrapper>
+              <SwapDetailView
+                swapId={location.pathname.split('/swap/')[1]}
+                currentUserId={user?.id}
+                onBack={() => window.history.back()}
+              />
+            </SuspenseWrapper>
+          } />
+          <Route path="wallet" element={
+            <SuspenseWrapper>
+              <WalletPage currentUser={user} language={lang} />
+            </SuspenseWrapper>
+          } />
+          <Route path="settings" element={
+            <SuspenseWrapper>
+              <SettingsPage
+                {...privateProps}
+                onSignOut={signOut}
+                onProfileUpdated={reloadProfile}
+              />
+            </SuspenseWrapper>
+          } />
+        </Route>
+
+        {/* 404 → Home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
+      <InstallBanner />
+    </>
   );
-}
+};
+
+// ─── Root App ─────────────────────────────────────────────────────────────────
+const App = () => (
+  <I18nextProvider i18n={i18n}>
+    <ToastProvider>
+      <GlobalStyles />
+      <BrowserRouter>
+        <InnerApp />
+      </BrowserRouter>
+    </ToastProvider>
+  </I18nextProvider>
+);
 
 export default App;
