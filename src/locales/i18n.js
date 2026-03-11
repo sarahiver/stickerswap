@@ -30,7 +30,7 @@ i18n
     supportedLngs: [
       'de','en','fr','es','it','pt',
       'pl','nl','ro','cs','hu','tr',
-      'ru','uk','hr',
+      'ar','uk','hr',
     ],
   });
 
@@ -51,7 +51,7 @@ export const LANGUAGES = [
   { code: 'cs', label: 'Čeština',    flag: '🇨🇿' },
   { code: 'hu', label: 'Magyar',     flag: '🇭🇺' },
   { code: 'tr', label: 'Türkçe',     flag: '🇹🇷' },
-  { code: 'ru', label: 'Русский',    flag: '🇷🇺' },
+  { code: 'ar', label: 'العربية',    flag: '🇸🇦', rtl: true },
   { code: 'uk', label: 'Українська', flag: '🇺🇦' },
   { code: 'hr', label: 'Hrvatski',   flag: '🇭🇷' },
 ];
@@ -59,5 +59,7 @@ export const LANGUAGES = [
 export function setLanguage(code) {
   i18n.changeLanguage(code);
   localStorage.setItem('ss_lang', code);
-  // Schreibe auch in profiles.language wenn eingeloggt (via Supabase)
+  // RTL für Arabisch
+  document.documentElement.dir = code === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = code;
 }
