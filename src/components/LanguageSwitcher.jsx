@@ -1,146 +1,108 @@
-import { useState } from 'react'
-import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
-import { LANGUAGES, changeLanguage } from '../i18n/i18n'
-import BottomSheet from './BottomSheet'
-import { useBottomSheet } from '../hooks/useBottomSheet'
-import { paddingStart, marginStart } from '../theme/rtl'
+import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import styled, { keyframes } from 'styled-components';
+import { LANGUAGES, setLanguage } from '../locales/i18n';
 
-// ============================================================
-// LanguageSwitcher — Kapitel 2
-// Icon-First: Flaggen statt Text-Labels
-// Tier-Gruppierung sichtbar
-// RTL-kompatibel via Logical Properties
-// ============================================================
+const fadeDown = keyframes`from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}`;
 
-const TriggerBtn = styled.button`
-  min-height: ${({ theme }) => theme.touch.min};
-  min-width:  ${({ theme }) => theme.touch.min};
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background: ${({ theme }) => theme.colors.surface2};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.pill};
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.text};
-  transition: border-color 0.15s;
-  &:active { border-color: ${({ theme }) => theme.colors.accent}; }
-`
+const Wrap = styled.div`position: relative;`;
 
-const TierLabel = styled.div`
-  font-family: ${({ theme }) => theme.fonts.mono};
-  font-size: 10px;
-  color: ${({ theme }) => theme.colors.muted};
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  ${paddingStart('4px')}
-  margin-block: 12px 4px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  padding-bottom: 4px;
-`
+const Trigger = styled.button`
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 13px;
+  color: var(--text2); transition: all 0.15s;
+  white-space: nowrap;
+  &:hover { border-color: var(--accent3); color: var(--text); }
+`;
 
-const LangGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-`
+const Arrow = styled.span`
+  font-size: 10px; color: var(--muted);
+  transition: transform 0.2s;
+  transform: ${p => p.$open ? 'rotate(180deg)' : 'rotate(0)'};
+`;
 
-const LangOption = styled.button`
-  min-height: ${({ theme }) => theme.touch.min};
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ $active, theme }) =>
-    $active ? 'rgba(245,200,66,0.1)' : theme.colors.surface2};
-  border: 1.5px solid ${({ $active, theme }) =>
-    $active ? theme.colors.accent : 'transparent'};
-  transition: all 0.15s;
-  text-align: start;    /* RTL-kompatibel */
-  &:active { border-color: ${({ theme }) => theme.colors.accent}; }
-`
+const Dropdown = styled.div`
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  overflow: hidden;
+  animation: ${fadeDown} 0.18s ease;
+  width: 190px;
+  max-height: 420px;
+  overflow-y: auto;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+`;
 
-const LangInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  flex: 1;
-`
+const LangItem = styled.button`
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 14px;
+  font-size: 13px; text-align: left;
+  transition: background 0.12s;
+  color: ${p => p.$active ? 'var(--accent)' : 'var(--text2)'};
+  background: ${p => p.$active ? 'rgba(245,200,66,0.07)' : 'transparent'};
+  border-bottom: 1px solid ${p => p.$last ? 'transparent' : 'rgba(42,42,58,0.5)'};
+  font-weight: ${p => p.$active ? 600 : 400};
+  &:hover { background: var(--surface2); color: var(--text); }
+`;
 
-const LangName = styled.span`
-  font-size: 13px;
-  font-weight: 500;
-  color: ${({ $active, theme }) => $active ? theme.colors.accent : theme.colors.text};
-  line-height: 1.3;
-`
-
-const LangNative = styled.span`
-  font-size: 11px;
-  color: ${({ theme }) => theme.colors.muted};
-  line-height: 1.2;
-`
+const Flag = styled.span`font-size: 16px; flex-shrink: 0;`;
 
 const CheckMark = styled.span`
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.accent};
-  ${marginStart('auto')}
-`
+  margin-left: auto; color: var(--accent); font-size: 12px;
+`;
 
-const TIER_LABELS = { 1: 'Tier 1 — Vollständig', 2: 'Tier 2 — Übersetzt', 3: 'Tier 3 — Beta' }
-const TIERS = [1, 2, 3]
+export default function LanguageSwitcher() {
+  const { i18n } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
 
-const LanguageSwitcher = ({ onLanguageChange }) => {
-  const { i18n } = useTranslation()
-  const sheet = useBottomSheet()
-  const currentLang = i18n.language?.split('-')[0] || 'en'
-  const currentMeta = LANGUAGES[currentLang] || LANGUAGES.en
+  const current = LANGUAGES.find(l => l.code === i18n.language)
+    || LANGUAGES.find(l => l.code === 'en');
 
-  const handleSelect = async (langCode) => {
-    await changeLanguage(langCode)
-    if (onLanguageChange) onLanguageChange(langCode)
-    sheet.close()
-  }
+  // Außen-Klick schließt Dropdown
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
-  const langsByTier = TIERS.map(tier =>
-    Object.entries(LANGUAGES).filter(([, meta]) => meta.tier === tier)
-  )
+  const select = (code) => {
+    setLanguage(code);
+    setOpen(false);
+  };
 
   return (
-    <>
-      <TriggerBtn onClick={sheet.open} aria-label="Change language">
-        <span style={{ fontSize: 20 }}>{currentMeta.flag}</span>
-        <span style={{ fontSize: 13, fontWeight: 500 }}>{currentMeta.nativeName}</span>
-      </TriggerBtn>
+    <Wrap ref={ref}>
+      <Trigger onClick={() => setOpen(o => !o)}>
+        <Flag>{current.flag}</Flag>
+        {current.code.toUpperCase()}
+        <Arrow $open={open}>▾</Arrow>
+      </Trigger>
 
-      <BottomSheet isOpen={sheet.isOpen} onClose={sheet.close} title="🌐 Sprache / Language" snap="full">
-        {langsByTier.map((langs, idx) => (
-          <div key={idx}>
-            <TierLabel>{TIER_LABELS[idx + 1]}</TierLabel>
-            <LangGrid>
-              {langs.map(([code, meta]) => (
-                <LangOption
-                  key={code}
-                  $active={code === currentLang}
-                  onClick={() => handleSelect(code)}
-                  aria-label={`${meta.name} — ${meta.nativeName}`}
-                >
-                  <span style={{ fontSize: 24, lineHeight: 1 }}>{meta.flag}</span>
-                  <LangInfo>
-                    <LangName $active={code === currentLang}>{meta.nativeName}</LangName>
-                    <LangNative>{meta.name}</LangNative>
-                  </LangInfo>
-                  {code === currentLang && <CheckMark>✓</CheckMark>}
-                </LangOption>
-              ))}
-            </LangGrid>
-          </div>
-        ))}
-      </BottomSheet>
-    </>
-  )
+      {open && (
+        <Dropdown>
+          {LANGUAGES.map((l, i) => (
+            <LangItem
+              key={l.code}
+              $active={l.code === i18n.language}
+              $last={i === LANGUAGES.length - 1}
+              onClick={() => select(l.code)}
+            >
+              <Flag>{l.flag}</Flag>
+              {l.label}
+              {l.code === i18n.language && <CheckMark>✓</CheckMark>}
+            </LangItem>
+          ))}
+        </Dropdown>
+      )}
+    </Wrap>
+  );
 }
-
-export default LanguageSwitcher
