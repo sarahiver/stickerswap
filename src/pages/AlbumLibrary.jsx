@@ -115,28 +115,30 @@ const AlbumLibrary = ({ userId, language = 'de' }) => {
         .from('albums')
         .select('*')
         .eq('is_active', true)
-        .order('sort_order', { ascending: true });
+        .order('created_at', { ascending: true });
 
       if (!albumData) { setLoading(false); return; }
       setAlbums(albumData);
 
       // Fortschritt pro Album
       if (userId) {
-        const { data: userStickers } = await supabase
-          .from('user_stickers')
-          .select('sticker_id, status, stickers!inner(album_id)')
-          .eq('user_id', userId);
-
         const statsMap = {};
-        albumData.forEach(album => {
-          const mine = userStickers?.filter(s => s.stickers?.album_id === album.id) ?? [];
-          const done = mine.filter(s => s.status === 'have').length;
+        await Promise.all(albumData.map(async (album) => {
+          const { count: haveCount } = await supabase
+            .from('user_stickers')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('album_id', album.id)
+            .eq('status', 'have');
+
+          const done  = haveCount ?? 0;
+          const total = album.total_stickers ?? 0;
           statsMap[album.id] = {
             done,
-            total: album.total_stickers ?? 0,
-            pct: album.total_stickers > 0 ? Math.round((done / album.total_stickers) * 100) : 0,
+            total,
+            pct: total > 0 ? Math.round((done / total) * 100) : 0,
           };
-        });
+        }));
         setStats(statsMap);
       }
       setLoading(false);
