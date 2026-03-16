@@ -123,15 +123,15 @@ const CategoryRow = styled.div`
   border-bottom: 1px solid rgba(245,200,66,0.08);
 `
 const CategoryName = styled.span`
-  font-family: ${({ theme }) => theme.fonts.mono};
+  font-family: 'Space Mono', monospace;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.muted};
+  color: #6b6b8a;
 `
 const CategoryCount = styled.span`
-  font-family: ${({ theme }) => theme.fonts.mono};
+  font-family: 'Space Mono', monospace;
   font-size: 10px;
   color: rgba(107,107,138,0.6);
 `
@@ -221,7 +221,7 @@ const CellBtn = styled.button`
 
 // Sticker-Nummer
 const CellNum = styled.span`
-  font-family: ${({ theme }) => theme.fonts.mono};
+  font-family: 'Space Mono', monospace;
   font-size: 8.5px;
   line-height: 1;
   opacity: 0.65;
@@ -243,9 +243,9 @@ const DoubleBadge = styled.span`
   position: absolute;
   top: -5px;
   ${insetEnd('-5px')}   /* RTL-kompatibel: oben-rechts (LTR) / oben-links (RTL) */
-  background: ${({ theme }) => theme.colors.accent};
-  color: ${({ theme }) => theme.colors.bg};
-  font-family: ${({ theme }) => theme.fonts.mono};
+  background: #f5c842;
+  color: #0a0a0f;
+  font-family: 'Space Mono', monospace;
   font-size: 8px;
   font-weight: 700;
   padding: 1px 4px;
@@ -494,16 +494,16 @@ const BatchBar = styled.div`
   z-index: 10;
 `
 const BatchCount = styled.span`
-  font-family: ${({ theme }) => theme.fonts.mono};
+  font-family: 'Space Mono', monospace;
   font-size: 12px;
-  color: ${({ theme }) => theme.colors.accent};
+  color: #f5c842;
   flex: 1;
 `
 const BatchBtn = styled.button`
   min-height: 36px;
   padding: 0 14px;
-  border-radius: ${({ theme }) => theme.radius.pill};
-  font-family: ${({ theme }) => theme.fonts.mono};
+  border-radius: 100px;
+  font-family: 'Space Mono', monospace;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -541,10 +541,10 @@ const StatChip = styled.div`
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  border-radius: ${({ theme }) => theme.radius.pill};
+  border-radius: 100px;
   background: ${({ $bg }) => $bg || 'rgba(42,42,58,0.5)'};
   border: 1px solid ${({ $border }) => $border || 'rgba(107,107,138,0.2)'};
-  font-family: ${({ theme }) => theme.fonts.mono};
+  font-family: 'Space Mono', monospace;
   font-size: 10px;
   font-weight: 700;
   color: ${({ $color }) => $color || '#6b6b8a'};
