@@ -3,10 +3,312 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import landing from './landing';
 
-// Alle 15 Sprachen als Ressourcen aufbauen
-const resources = {};
+// App-Übersetzungen
+const appDe = {
+  // Common
+  "common.loading": "Lädt…",
+  "common.cancel":  "Abbrechen",
+  "common.back":    "Zurück",
+  "common.save":    "Speichern",
+  "common.close":   "Schließen",
+  "common.edit":    "Bearbeiten",
+  "common.delete":  "Löschen",
+  "common.confirm": "Bestätigen",
+  "common.error":   "Fehler",
+  "common.success": "Erfolgreich",
+  "common.token":   "Token",
+  "common.tokens":  "Token",
+
+  // Nav
+  "nav.home":     "Home",
+  "nav.album":    "Album",
+  "nav.matches":  "Matches",
+  "nav.wallet":   "Wallet",
+  "nav.settings": "Einstellungen",
+
+  // Dashboard
+  "dashboard.greeting.morning":   "Guten Morgen",
+  "dashboard.greeting.afternoon": "Guten Tag",
+  "dashboard.greeting.evening":   "Guten Abend",
+  "dashboard.progress":           "{{percent}}% von {{album}} geschafft",
+  "dashboard.actionEnter":        "Sticker eintragen",
+  "dashboard.actionMatches":      "Matches checken",
+  "dashboard.recentActivity":     "Letzte Aktivität",
+  "dashboard.noActivity":         "Noch keine Aktivität",
+  "dashboard.swapConfirmed":      "Swap #{{id}} wurde bestätigt 🎉",
+  "dashboard.newMessage":         "Neue Nachricht von {{name}}",
+  "dashboard.newMatch":           "Neuer Match für {{album}}",
+  "dashboard.tokenReceived":      "+{{amount}} Token erhalten",
+  "dashboard.openSwaps":          "Offene Swaps",
+  "dashboard.reputation":         "Reputation",
+  "dashboard.balance":            "Guthaben",
+
+  // Albums
+  "albums.title":       "Alben",
+  "albums.subtitle":    "Wähle ein Album zum Verwalten",
+  "albums.empty":       "Keine Alben gefunden",
+  "albums.progress":    "{{done}} / {{total}} Sticker",
+  "albums.complete":    "Komplett!",
+
+  // Match
+  "match.title":    "Matches",
+  "match.youGive":  "Du gibst",
+  "match.youGet":   "Du bekommst",
+  "match.noMatches":"Keine Matches — trag mehr Sticker ein!",
+
+  // Wallet
+  "wallet.title":           "Mein Wallet",
+  "wallet.subtitle":        "Token-Guthaben und Transaktionen",
+  "wallet.balance":         "Guthaben",
+  "wallet.yourBalance":     "Dein Guthaben",
+  "wallet.available":       "Verfügbar",
+  "wallet.locked":          "Gesperrt",
+  "wallet.buyTokens":       "Token kaufen",
+  "wallet.popular":         "Beliebt",
+  "wallet.history":         "Transaktionen",
+  "wallet.loadingHistory":  "Lädt…",
+  "wallet.noHistory":       "Noch keine Transaktionen",
+  "wallet.transactionList": "Transaktionsliste",
+  "wallet.txType.purchase":          "Token-Kauf",
+  "wallet.txType.swap_lock":         "Kaution gesperrt",
+  "wallet.txType.swap_refund":       "Kaution zurück",
+  "wallet.txType.reputation_change": "Reputation-Änderung",
+  "wallet.txType.bonus":             "Bonus",
+
+  // Swap Detail
+  "swap.detail.title":           "Tausch-Details",
+  "swap.detail.partner":         "Tauschpartner",
+  "swap.detail.timeline":        "Status-Verlauf",
+  "swap.detail.currentStep":     "Aktueller Schritt",
+  "swap.detail.exchange":        "Tausch-Inhalt",
+  "swap.detail.exchangeTitle":   "Tausch-Inhalt",
+  "swap.detail.proofUpload":     "Versand-Nachweis",
+  "swap.detail.proofTitle":      "Foto des Briefes hochladen",
+  "swap.detail.proofHint":       "Lade ein Foto des frankierten Umschlags hoch.",
+  "swap.detail.uploadZone":      "Foto auswählen",
+  "swap.detail.uploading":       "Wird hochgeladen…",
+  "swap.detail.uploadCta":       "Tippe um Foto aufzunehmen",
+  "swap.detail.trackingPlaceholder": "Sendungsnummer (optional)",
+  "swap.detail.trackingLabel":   "Sendungsnummer",
+  "swap.detail.markShipped":     "Als versendet markieren",
+  "swap.detail.confirmReceived": "Empfang bestätigen",
+  "swap.detail.completed":       "Tausch erfolgreich abgeschlossen!",
+  "swap.detail.reputationGained":"+5 Reputation für beide Seiten",
+
+  // Chat
+  "chat.label":            "Nachrichten",
+  "chat.title":            "Nachrichten",
+  "chat.reportProblem":    "Problem melden",
+  "chat.disputed":         "In Prüfung",
+  "chat.messageList":      "Nachrichtenverlauf",
+  "chat.inputForm":        "Nachricht schreiben",
+  "chat.inputLabel":       "Nachricht eingeben",
+  "chat.inputPlaceholder": "Nachricht…",
+  "chat.send":             "Senden",
+  "chat.empty":            "Noch keine Nachrichten",
+  "chat.closed":           "Chat ist geschlossen",
+  "chat.ownMessage":       "Deine Nachricht",
+  "chat.partnerMessage":   "Nachricht des Partners",
+  "chat.system.swap_accepted":  "{{user}} hat den Tausch angenommen ✅",
+  "chat.system.shipped":        "{{user}} hat versendet 📦",
+  "chat.system.both_shipped":   "Beide haben versendet ✉️",
+  "chat.system.completed":      "Tausch erfolgreich abgeschlossen 🎉",
+  "chat.system.dispute_opened": "Problem gemeldet ⚠️",
+  "chat.system.cancelled":      "Tausch wurde abgebrochen",
+
+  // Dispute
+  "dispute.title":       "Problem melden",
+  "dispute.hint":        "Beschreibe das Problem. Token bleiben gesperrt.",
+  "dispute.placeholder": "Was ist das Problem? (mind. 10 Zeichen)",
+  "dispute.reasonLabel": "Problembeschreibung",
+  "dispute.submit":      "Einreichen",
+
+  // Notifications
+  "notif.swapAccepted":   "{{name}} hat deinen Tausch angenommen!",
+  "notif.partnerShipped": "{{name}} hat versendet 📦",
+  "notif.bothShipped":    "Beide haben versendet ✉️",
+  "notif.swapCompleted":  "Tausch abgeschlossen! +5 Reputation 🎉",
+  "notif.disputeOpened":  "Problem gemeldet ⚠️",
+  "notif.swapCancelled":  "Tausch wurde abgebrochen",
+
+  // Reputation
+  "reputation.top":     "Top-Tauscher",
+  "reputation.verified":"Erfahren",
+  "reputation.normal":  "Aktiv",
+  "reputation.newbie":  "Neuling",
+  "reputation.warning": "Warnung",
+
+  // Settings
+  "settings.title":              "Einstellungen",
+  "settings.language":           "Sprache",
+  "settings.country":            "Land",
+  "settings.internationalSwaps": "Internationale Tausche",
+  "settings.internationalHint":  "Achtung: Höheres Porto bei internationalem Tausch",
+  "settings.notifications":      "E-Mail-Benachrichtigungen",
+  "settings.saved":              "Gespeichert ✅",
+  "settings.account":            "Account",
+  "settings.signOut":            "Abmelden",
+  "settings.signOutConfirm":     "Wirklich abmelden?",
+
+  // Auth
+  "auth.login":          "Anmelden",
+  "auth.signup":         "Registrieren",
+  "auth.email":          "E-Mail",
+  "auth.password":       "Passwort",
+  "auth.forgotPassword": "Passwort vergessen?",
+  "auth.noAccount":      "Noch kein Konto?",
+  "auth.hasAccount":     "Bereits ein Konto?",
+  "auth.magicLink":      "Magic Link senden",
+  "auth.magicLinkSent":  "Check deine E-Mails!",
+};
+
+const appEn = {
+  "common.loading": "Loading…",
+  "common.cancel":  "Cancel",
+  "common.back":    "Back",
+  "common.save":    "Save",
+  "common.close":   "Close",
+  "common.edit":    "Edit",
+  "common.delete":  "Delete",
+  "common.confirm": "Confirm",
+  "common.error":   "Error",
+  "common.success": "Success",
+  "common.token":   "Token",
+  "common.tokens":  "Tokens",
+  "nav.home":     "Home",
+  "nav.album":    "Album",
+  "nav.matches":  "Matches",
+  "nav.wallet":   "Wallet",
+  "nav.settings": "Settings",
+  "dashboard.greeting.morning":   "Good morning",
+  "dashboard.greeting.afternoon": "Good afternoon",
+  "dashboard.greeting.evening":   "Good evening",
+  "dashboard.progress":           "{{percent}}% of {{album}} complete",
+  "dashboard.actionEnter":        "Add stickers",
+  "dashboard.actionMatches":      "Check matches",
+  "dashboard.recentActivity":     "Recent activity",
+  "dashboard.noActivity":         "No activity yet",
+  "dashboard.openSwaps":          "Open swaps",
+  "dashboard.reputation":         "Reputation",
+  "dashboard.balance":            "Balance",
+  "albums.title":       "Albums",
+  "albums.subtitle":    "Choose an album to manage",
+  "albums.empty":       "No albums found",
+  "albums.progress":    "{{done}} / {{total}} stickers",
+  "albums.complete":    "Complete!",
+  "match.title":    "Matches",
+  "match.youGive":  "You give",
+  "match.youGet":   "You get",
+  "match.noMatches":"No matches — add more stickers!",
+  "wallet.title":           "My Wallet",
+  "wallet.subtitle":        "Token balance and transactions",
+  "wallet.balance":         "Balance",
+  "wallet.yourBalance":     "Your balance",
+  "wallet.available":       "Available",
+  "wallet.locked":          "Locked",
+  "wallet.buyTokens":       "Buy tokens",
+  "wallet.popular":         "Popular",
+  "wallet.history":         "Transactions",
+  "wallet.loadingHistory":  "Loading…",
+  "wallet.noHistory":       "No transactions yet",
+  "wallet.transactionList": "Transaction list",
+  "wallet.txType.purchase":          "Token purchase",
+  "wallet.txType.swap_lock":         "Deposit locked",
+  "wallet.txType.swap_refund":       "Deposit returned",
+  "wallet.txType.reputation_change": "Reputation change",
+  "wallet.txType.bonus":             "Bonus",
+  "swap.detail.title":           "Swap Details",
+  "swap.detail.partner":         "Trading partner",
+  "swap.detail.timeline":        "Status timeline",
+  "swap.detail.currentStep":     "Current step",
+  "swap.detail.exchange":        "Swap contents",
+  "swap.detail.exchangeTitle":   "Swap contents",
+  "swap.detail.proofUpload":     "Shipping proof",
+  "swap.detail.proofTitle":      "Upload photo of envelope",
+  "swap.detail.proofHint":       "Upload a photo of the stamped envelope.",
+  "swap.detail.uploadZone":      "Select photo",
+  "swap.detail.uploading":       "Uploading…",
+  "swap.detail.uploadCta":       "Tap to take photo",
+  "swap.detail.trackingPlaceholder": "Tracking number (optional)",
+  "swap.detail.trackingLabel":   "Tracking number",
+  "swap.detail.markShipped":     "Mark as shipped",
+  "swap.detail.confirmReceived": "Confirm receipt",
+  "swap.detail.completed":       "Swap completed successfully!",
+  "swap.detail.reputationGained":"+5 reputation for both sides",
+  "chat.label":            "Messages",
+  "chat.title":            "Messages",
+  "chat.reportProblem":    "Report problem",
+  "chat.disputed":         "Under review",
+  "chat.messageList":      "Message history",
+  "chat.inputForm":        "Write message",
+  "chat.inputLabel":       "Enter message",
+  "chat.inputPlaceholder": "Message…",
+  "chat.send":             "Send",
+  "chat.empty":            "No messages yet",
+  "chat.closed":           "Chat is closed",
+  "chat.ownMessage":       "Your message",
+  "chat.partnerMessage":   "Partner's message",
+  "chat.system.swap_accepted":  "{{user}} accepted the swap ✅",
+  "chat.system.shipped":        "{{user}} has shipped 📦",
+  "chat.system.both_shipped":   "Both shipped ✉️",
+  "chat.system.completed":      "Swap completed 🎉",
+  "chat.system.dispute_opened": "Problem reported ⚠️",
+  "chat.system.cancelled":      "Swap was cancelled",
+  "dispute.title":       "Report problem",
+  "dispute.hint":        "Describe the problem. Tokens stay locked.",
+  "dispute.placeholder": "What's the problem? (min 10 chars)",
+  "dispute.reasonLabel": "Problem description",
+  "dispute.submit":      "Submit",
+  "notif.swapAccepted":   "{{name}} accepted your swap!",
+  "notif.partnerShipped": "{{name}} has shipped 📦",
+  "notif.bothShipped":    "Both shipped ✉️",
+  "notif.swapCompleted":  "Swap completed! +5 reputation 🎉",
+  "notif.disputeOpened":  "Problem reported ⚠️",
+  "notif.swapCancelled":  "Swap was cancelled",
+  "reputation.top":     "Top Trader",
+  "reputation.verified":"Experienced",
+  "reputation.normal":  "Active",
+  "reputation.newbie":  "Newbie",
+  "reputation.warning": "Warning",
+  "settings.title":              "Settings",
+  "settings.language":           "Language",
+  "settings.country":            "Country",
+  "settings.internationalSwaps": "International swaps",
+  "settings.internationalHint":  "Note: Higher postage for international swaps",
+  "settings.notifications":      "Email notifications",
+  "settings.saved":              "Saved ✅",
+  "settings.account":            "Account",
+  "settings.signOut":            "Sign out",
+  "settings.signOutConfirm":     "Really sign out?",
+  "auth.login":          "Sign in",
+  "auth.signup":         "Sign up",
+  "auth.email":          "Email",
+  "auth.password":       "Password",
+  "auth.forgotPassword": "Forgot password?",
+  "auth.noAccount":      "No account yet?",
+  "auth.hasAccount":     "Already have an account?",
+  "auth.magicLink":      "Send magic link",
+  "auth.magicLinkSent":  "Check your email!",
+};
+
+// Landing-Übersetzungen zusammenführen
+const landingResources = {};
 Object.entries(landing).forEach(([lang, data]) => {
-  resources[lang] = { landing: data };
+  landingResources[lang] = data;
+});
+
+const appFallback = { ...appEn };
+
+const resources = {
+  de: { translation: appDe, landing: landingResources['de'] || {} },
+  en: { translation: appEn, landing: landingResources['en'] || {} },
+};
+
+['fr','es','it','pt','pl','nl','ro','cs','hu','tr','ar','uk','hr'].forEach(lang => {
+  resources[lang] = {
+    translation: appFallback,
+    landing: landingResources[lang] || landingResources['en'] || {},
+  };
 });
 
 i18n
@@ -14,29 +316,27 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',          // Fallback wenn Sprache fehlt
-    defaultNS:   'landing',
-
+    fallbackLng: 'de',
+    defaultNS:   'translation',
+    ns:          ['translation', 'landing'],
     detection: {
-      // 1. localStorage (User-Wahl), 2. Browser-Sprache
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: 'ss_lang',
       caches: ['localStorage'],
     },
-
     interpolation: { escapeValue: false },
-
-    // Unterstützte Sprachen
-    supportedLngs: [
-      'de','en','fr','es','it','pt',
-      'pl','nl','ro','cs','hu','tr',
-      'ar','uk','hr',
-    ],
+    supportedLngs: ['de','en','fr','es','it','pt','pl','nl','ro','cs','hu','tr','ar','uk','hr'],
   });
 
 export default i18n;
 
-/* ─── Hilfsfunktionen ─────────────────────────── */
+const RTL_LANGS = ['ar', 'he', 'fa'];
+i18n.on('languageChanged', (lng) => {
+  document.documentElement.dir  = RTL_LANGS.includes(lng) ? 'rtl' : 'ltr';
+  document.documentElement.lang = lng;
+});
+
+window.__i18n_instance__ = i18n;
 
 export const LANGUAGES = [
   { code: 'de', label: 'Deutsch',    flag: '🇩🇪' },
@@ -59,7 +359,6 @@ export const LANGUAGES = [
 export function setLanguage(code) {
   i18n.changeLanguage(code);
   localStorage.setItem('ss_lang', code);
-  // RTL für Arabisch
-  document.documentElement.dir = code === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.dir  = code === 'ar' ? 'rtl' : 'ltr';
   document.documentElement.lang = code;
 }
