@@ -1,4 +1,6 @@
 import React, { Suspense, lazy } from 'react';
+import { ThemeProvider } from 'styled-components';
+import { theme } from './theme/theme';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import GlobalStyles from './lib/GlobalStyles';
 import useAuth from './hooks/useAuth';
@@ -73,6 +75,7 @@ const AlbumLibraryWrapper = () => {
 
 export default function App() {
   return (
+    <ThemeProvider theme={theme}>
     <BrowserRouter>
       <GlobalStyles />
       <Suspense fallback={<Loader />}>
@@ -103,5 +106,6 @@ export default function App() {
         </Routes>
       </Suspense>
     </BrowserRouter>
+    </ThemeProvider>
   );
 }
