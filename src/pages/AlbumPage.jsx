@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import StickerGrid from '../components/StickerGrid';
 import { useStickerGrid } from '../hooks/useStickerGrid';
-import { useAuth } from '../context/AuthContext';
+import useAuth from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 
 // ── Styled Components ─────────────────────────────────────────
