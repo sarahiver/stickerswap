@@ -349,10 +349,10 @@ const buildVirtualRows = (stickersArray, cols) => {
   }
 
   stickersArray.forEach(sticker => {
-    const cat = sticker.category || '__default'
+    const cat = sticker.section || sticker.category || '__default'
     if (cat !== lastCategory) {
       flushBuffer()
-      rows.push({ type: 'header', category: cat, label: sticker.category })
+      rows.push({ type: 'header', category: cat, label: sticker.section || sticker.category })
       lastCategory = cat
     }
     buffer.push(sticker)
@@ -415,7 +415,7 @@ const MemoCell = memo(({
         <DoubleBadge>×{sticker.quantity}</DoubleBadge>
       )}
 
-      <CellNum>#{sticker.number}</CellNum>
+      <CellNum>{sticker.code || `#${sticker.number}`}</CellNum>
       <CellStatus>{config.emoji}</CellStatus>
     </CellBtn>
   )
