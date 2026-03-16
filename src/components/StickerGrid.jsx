@@ -610,7 +610,7 @@ const StickerGrid = ({
       selectMode, selected, pendingRef,
       onStickerTap, onLongPress, language
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
     [virtualRows, cols, rowH, cellH, selectMode, selected, language]
   )
 
