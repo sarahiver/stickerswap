@@ -1,21 +1,7 @@
+// src/hooks/useStickerGrid.js — echtes Schema (user_stickers + stickers RPCs)
 import { useState, useCallback, useRef, useTransition } from 'react'
 import { supabase } from '../lib/supabase'
 
-// ============================================================
-// useStickerGrid — Kapitel 3
-//
-// State-Management für das Sticker-Grid:
-//   - Lädt Album-Sticker via get_album_stickers() RPC
-//   - Optimistic UI: Status-Update sofort lokal, API im Hintergrund
-//   - Rollback bei Fehler + Toast
-//   - Batch-Update für "Alle markieren"
-//   - Selection-Mode für Multi-Select
-//
-// SICHERHEIT: Frontend sendet nur sticker_id + status.
-// Validierung + locked-Schutz liegt in der RPC/RLS.
-// ============================================================
-
-// Status-Reihenfolge für Cycling (Tap ohne Sheet)
 const STATUS_CYCLE = ['need', 'have', 'double']
 const nextStatus = (current) => {
   const idx = STATUS_CYCLE.indexOf(current)
@@ -23,24 +9,17 @@ const nextStatus = (current) => {
 }
 
 export const useStickerGrid = (albumId) => {
-  // ── State ─────────────────────────────────────────────────
-  // Map<sticker_id, {number, name, category, rarity_score, image_url, status, quantity}>
-  const [stickers,    setStickers]    = useState(new Map())
-  const [loading,     setLoading]     = useState(false)
-  const [error,       setError]       = useState(null)
-  const [stats,       setStats]       = useState({ total: 0, have: 0, double: 0, need: 0, locked: 0 })
+  const [stickers,   setStickers]   = useState(new Map())
+  const [loading,    setLoading]    = useState(false)
+  const [error,      setError]      = useState(null)
+  const [stats,      setStats]      = useState({ total: 0, have: 0, double: 0, need: 0, locked: 0 })
+  const [selected,   setSelected]   = useState(new Set())
+  const [selectMode, setSelectMode] = useState(false)
 
-  // Selection-Mode (für Batch-Updates)
-  const [selected,    setSelected]    = useState(new Set())
-  const [selectMode,  setSelectMode]  = useState(false)
-
-  // Pending-Indicator für Optimistic-Updates (Map<sticker_id, true>)
   const pending = useRef(new Map())
-
-  // React 18: useTransition verhindert Ruckeln bei großen State-Updates
   const [, startTransition] = useTransition()
 
-  // ── Album laden ───────────────────────────────────────────
+  // ── Album laden via RPC ──────────────────────────────────
   const loadAlbum = useCallback(async (language = 'en') => {
     if (!albumId) return
     setLoading(true)
@@ -57,14 +36,13 @@ export const useStickerGrid = (albumId) => {
       return
     }
 
-    // Array → Map für O(1)-Zugriff
     startTransition(() => {
       const map = new Map()
       ;(data || []).forEach(s => map.set(s.sticker_id, s))
       setStickers(map)
     })
 
-    // Stats separat laden
+    // Stats laden
     const { data: statsData } = await supabase.rpc('get_album_stats', {
       p_album_id: albumId,
     })
@@ -73,7 +51,7 @@ export const useStickerGrid = (albumId) => {
     setLoading(false)
   }, [albumId])
 
-  // ── Stats neu berechnen (lokal, ohne RPC) ─────────────────
+  // ── Stats lokal neu berechnen ────────────────────────────
   const recalcStats = useCallback((map) => {
     let have = 0, double_ = 0, need = 0, locked = 0
     map.forEach(s => {
@@ -85,29 +63,24 @@ export const useStickerGrid = (albumId) => {
     setStats(prev => ({ ...prev, have, double: double_, need, locked }))
   }, [])
 
-  // ── Einzelner Sticker-Update (Optimistic) ─────────────────
+  // ── Einzelner Update (Optimistic) ────────────────────────
   const updateSticker = useCallback(async (stickerId, newStatus) => {
     const sticker = stickers.get(stickerId)
-    if (!sticker) return { success: false, error: 'Sticker not found' }
-
-    // 'locked' kann nur das Swap-System setzen
+    if (!sticker) return { success: false, error: 'Not found' }
     if (newStatus === 'locked') return { success: false, error: 'Not allowed' }
-    if (sticker.status === 'locked') return { success: false, error: 'Locked in swap' }
+    if (sticker.status === 'locked') return { success: false, error: 'Locked' }
 
     const oldStatus = sticker.status
 
-    // ── OPTIMISTIC UPDATE: sofort im UI sichtbar ─────────────
+    // Optimistic
     setStickers(prev => {
       const next = new Map(prev)
       next.set(stickerId, { ...sticker, status: newStatus })
       return next
     })
-
-    // Pending markieren
     pending.current.set(stickerId, true)
 
-    // ── API-Call im Hintergrund ───────────────────────────────
-    const { data, error: rpcError } = await supabase.rpc('upsert_user_sticker', {
+    const { error: rpcError } = await supabase.rpc('upsert_user_sticker', {
       p_sticker_id: stickerId,
       p_status:     newStatus,
     })
@@ -115,7 +88,7 @@ export const useStickerGrid = (albumId) => {
     pending.current.delete(stickerId)
 
     if (rpcError) {
-      // ── ROLLBACK: Alten Status wiederherstellen ─────────────
+      // Rollback
       setStickers(prev => {
         const next = new Map(prev)
         next.set(stickerId, { ...sticker, status: oldStatus })
@@ -124,34 +97,23 @@ export const useStickerGrid = (albumId) => {
       return { success: false, error: rpcError.message }
     }
 
-    // Stats lokal aktualisieren (kein Extra-RPC nötig)
-    setStickers(prev => {
-      recalcStats(prev)
-      return prev
-    })
-
-    return { success: true, data }
+    setStickers(prev => { recalcStats(prev); return prev })
+    return { success: true }
   }, [stickers, recalcStats])
 
-  // ── Batch-Update (bis zu 50 Sticker) ─────────────────────
+  // ── Batch-Update ─────────────────────────────────────────
   const batchUpdate = useCallback(async (stickerIds, newStatus) => {
-    if (!stickerIds.length) return { success: false, error: 'No stickers selected' }
-    if (newStatus === 'locked') return { success: false, error: 'Not allowed' }
+    if (!stickerIds.length) return { success: false }
+    if (newStatus === 'locked') return { success: false }
 
-    // Nur nicht-locked Sticker
     const eligible = stickerIds.filter(id => {
       const s = stickers.get(id)
       return s && s.status !== 'locked'
     })
+    if (!eligible.length) return { success: false }
 
-    if (!eligible.length) return { success: false, error: 'All locked' }
+    const snapshots = new Map(eligible.map(id => [id, stickers.get(id)?.status]))
 
-    // Snapshot für Rollback
-    const snapshots = new Map(
-      eligible.map(id => [id, stickers.get(id)?.status])
-    )
-
-    // Optimistic Update
     startTransition(() => {
       setStickers(prev => {
         const next = new Map(prev)
@@ -163,13 +125,12 @@ export const useStickerGrid = (albumId) => {
       })
     })
 
-    // Batches von 50
-    const BATCH_SIZE = 50
-    let totalUpdated = 0
-    let totalErrors  = []
+    const BATCH = 50
+    let updated = 0
+    const errors = []
 
-    for (let i = 0; i < eligible.length; i += BATCH_SIZE) {
-      const chunk = eligible.slice(i, i + BATCH_SIZE)
+    for (let i = 0; i < eligible.length; i += BATCH) {
+      const chunk = eligible.slice(i, i + BATCH)
       const updates = chunk.map(id => ({ sticker_id: id, status: newStatus }))
 
       const { data, error: rpcError } = await supabase.rpc('batch_update_stickers', {
@@ -177,7 +138,6 @@ export const useStickerGrid = (albumId) => {
       })
 
       if (rpcError) {
-        // Rollback dieser Chunk
         setStickers(prev => {
           const next = new Map(prev)
           chunk.forEach(id => {
@@ -186,76 +146,59 @@ export const useStickerGrid = (albumId) => {
           })
           return next
         })
-        totalErrors.push(rpcError.message)
+        errors.push(rpcError.message)
       } else {
-        totalUpdated += data?.updated ?? 0
-        if (data?.errors?.length) totalErrors.push(...data.errors)
+        updated += data?.updated ?? 0
+        if (data?.errors?.length) errors.push(...data.errors)
       }
     }
 
-    // Selection leeren
     setSelected(new Set())
     setSelectMode(false)
-
-    // Stats neu berechnen
     setStickers(prev => { recalcStats(prev); return prev })
 
-    return {
-      success:  totalErrors.length === 0,
-      updated:  totalUpdated,
-      errors:   totalErrors,
-    }
+    return { success: errors.length === 0, updated, errors }
   }, [stickers, recalcStats])
 
-  // ── Selection-Mode ────────────────────────────────────────
-  const toggleSelect = useCallback((stickerId) => {
+  // ── Selection ────────────────────────────────────────────
+  const toggleSelect = useCallback((id) => {
     setSelected(prev => {
       const next = new Set(prev)
-      next.has(stickerId) ? next.delete(stickerId) : next.add(stickerId)
+      next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
   }, [])
-
-  const selectAll   = useCallback(() =>
-    setSelected(new Set(stickers.keys())), [stickers])
 
   const clearSelect = useCallback(() => {
     setSelected(new Set())
     setSelectMode(false)
   }, [])
 
-  // ── Status cycling (Quick-Tap ohne Sheet) ─────────────────
-  const cycleStatus = useCallback((stickerId) => {
-    const s = stickers.get(stickerId)
+  const cycleStatus = useCallback((id) => {
+    const s = stickers.get(id)
     if (!s || s.status === 'locked') return null
     return nextStatus(s.status)
   }, [stickers])
 
-  // ── isPending helper ──────────────────────────────────────
-  const isPending = useCallback((stickerId) =>
-    pending.current.has(stickerId), [])
+  const isPending = useCallback((id) => pending.current.has(id), [])
 
   return {
-    // Data
-    stickers,          // Map<uuid, StickerData>
-    stickersArray: [...stickers.values()],  // für react-window
+    stickers,
+    stickersArray: [...stickers.values()],
     stats,
     loading,
     error,
-    // Actions
     loadAlbum,
     updateSticker,
     batchUpdate,
     cycleStatus,
-    // Selection
     selected,
     selectMode,
     setSelectMode,
     toggleSelect,
-    selectAll,
     clearSelect,
-    // Helpers
     isPending,
+    pendingRef: pending,
     totalSelected: selected.size,
   }
 }
