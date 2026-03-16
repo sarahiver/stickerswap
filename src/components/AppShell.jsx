@@ -1,13 +1,9 @@
 // src/components/AppShell.jsx
-// Kapitel 8 — App-Shell mit fixierter Bottom-Tab-Bar
-// Semantisch: <nav><ul><li>, RTL-kompatibel
-
 import React from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { useTranslation } from 'react-i18next';
 
-// ─── Styled Components ────────────────────────────────────────────────────────
 const Shell = styled.div`
   height: 100dvh;
   display: flex;
@@ -29,14 +25,12 @@ const BottomNav = styled.nav`
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding-bottom: var(--safe-bottom);
-  /* RTL: Tab-Reihenfolge bleibt gleich — nur visuelle Richtung ändert sich */
 `;
 
 const TabList = styled.ul`
   list-style: none;
   display: flex;
   height: var(--nav-height);
-  /* RTL: Reihenfolge umkehren */
   [dir="rtl"] & { flex-direction: row-reverse; }
 `;
 
@@ -62,7 +56,6 @@ const TabLink = styled(NavLink)`
     color: var(--color-accent);
   }
 
-  /* Active Indicator */
   &.active::before {
     content: '';
     position: absolute;
@@ -82,7 +75,6 @@ const TabLink = styled(NavLink)`
 const TabIcon = styled.span`
   font-size: 22px;
   line-height: 1;
-  /* Aktiv: leicht größer */
   ${TabLink}.active & { transform: scale(1.05); }
   transition: transform 150ms;
 `;
@@ -95,11 +87,9 @@ const TabLabel = styled.span`
   white-space: nowrap;
 `;
 
-// Badge für ungelesene Nachrichten
 const Badge = styled.span`
   position: absolute;
   top: 6px;
-  /* RTL: Badge auf der anderen Seite */
   right: calc(50% - 18px);
   [dir="rtl"] & { right: auto; left: calc(50% - 18px); }
   background: var(--color-danger);
@@ -114,23 +104,23 @@ const Badge = styled.span`
   pointer-events: none;
 `;
 
-// ─── Tabs Konfiguration ───────────────────────────────────────────────────────
+// /dashboard statt / als Home-Tab
 const TABS = [
-  { to: '/',         icon: '🏠', labelKey: 'nav.home',     end: true  },
-  { to: '/albums',   icon: '📖', labelKey: 'nav.album'               },
-  { to: '/matches',  icon: '🤝', labelKey: 'nav.matches'             },
-  { to: '/wallet',   icon: '👛', labelKey: 'nav.wallet'              },
-  { to: '/settings', icon: '⚙️', labelKey: 'nav.settings'           },
+  { to: '/dashboard', icon: '🏠', labelKey: 'nav.home'     },
+  { to: '/albums',    icon: '📖', labelKey: 'nav.album'    },
+  { to: '/matches',   icon: '🤝', labelKey: 'nav.matches'  },
+  { to: '/wallet',    icon: '👛', labelKey: 'nav.wallet'   },
+  { to: '/settings',  icon: '⚙️', labelKey: 'nav.settings' },
 ];
 
-// ─── Hauptkomponente ──────────────────────────────────────────────────────────
-const AppShell = ({ unreadCount = 0 }) => {
+const AppShell = ({ children, unreadCount = 0 }) => {
   const { t } = useTranslation();
 
   return (
     <Shell>
       <PageArea>
-        <Outlet />
+        {/* children wenn direkt übergeben (aus App.js), sonst Outlet */}
+        {children || <Outlet />}
       </PageArea>
 
       <BottomNav aria-label={t('nav.main', 'Hauptnavigation')}>
@@ -139,12 +129,10 @@ const AppShell = ({ unreadCount = 0 }) => {
             <TabItem key={tab.to}>
               <TabLink
                 to={tab.to}
-                end={tab.end}
                 aria-label={t(tab.labelKey)}
               >
                 <TabIcon aria-hidden="true">{tab.icon}</TabIcon>
                 <TabLabel>{t(tab.labelKey)}</TabLabel>
-                {/* Unread Badge nur bei Matches */}
                 {tab.to === '/matches' && unreadCount > 0 && (
                   <Badge aria-label={`${unreadCount} neue Matches`}>
                     {unreadCount > 9 ? '9+' : unreadCount}

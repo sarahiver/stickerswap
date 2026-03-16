@@ -17,7 +17,6 @@ const SwapDetailView = lazy(() => import('./components/SwapDetailView'));
 const WalletPage     = lazy(() => import('./pages/WalletPage'));
 const SettingsPage   = lazy(() => import('./pages/SettingsPage'));
 
-/* ── Guards ── */
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <Loader />;
@@ -60,6 +59,18 @@ function Loader() {
   );
 }
 
+// DashboardPage mit user+profile als Props
+const DashboardWrapper = () => {
+  const { user, profile } = useAuth();
+  return <DashboardPage user={user} profile={profile} />;
+};
+
+// AlbumLibrary mit userId
+const AlbumLibraryWrapper = () => {
+  const { user } = useAuth();
+  return <AlbumLibrary userId={user?.id} />;
+};
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -76,8 +87,8 @@ export default function App() {
             <PrivateRoute>
               <AppShell>
                 <Routes>
-                  <Route path="/dashboard"  element={<DashboardPage />} />
-                  <Route path="/albums"     element={<AlbumLibrary />} />
+                  <Route path="/dashboard"  element={<DashboardWrapper />} />
+                  <Route path="/albums"     element={<AlbumLibraryWrapper />} />
                   <Route path="/album/:id"  element={<AlbumPage />} />
                   <Route path="/matches"    element={<MatchPage />} />
                   <Route path="/swap/:id"   element={<SwapDetailView />} />
