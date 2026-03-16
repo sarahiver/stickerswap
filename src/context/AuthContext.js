@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { changeLanguage } from '../i18n/i18n'
+import i18n from '../i18n/i18n'
 
 // ============================================================
 // AuthContext — Kapitel 1: Auth & Session Management
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
 
     // Sprache aus Profil wiederherstellen
     if (data?.language) {
-      await changeLanguage(data.language)
+      await i18n.changeLanguage(data.language)
     }
 
     return data
